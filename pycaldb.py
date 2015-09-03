@@ -224,7 +224,7 @@ def get_calpars (toolname, package='heasoft'):
         try:
             pfiledir = os.getenv(envname)+'/syspfiles'
         except:
-            print "Package = {0} but problem accessing envirionment variable ${1}".format(package, envname)
+            print "Package = {0} but problem accessing environment variable ${1}".format(package, envname)
             return 0
         parfile = pfiledir+'/'+toolname+'.par'
         with open (parfile,'r') as pf:
