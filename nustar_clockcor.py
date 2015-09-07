@@ -7,8 +7,8 @@ def update_clockcor(version, file,
     @param version: should be of the form YYYYMMDD, i.e. the
     year, month, date of release of the new clock correction file
     which for the clock correction file should be the "valid up to"
-    date (for eg, for v43, 2015-01-14)
-    @param file: name of the new clock correction file
+    date (for eg, for v43, version = "20150114")
+    @param file: name of the new clock correction file (nuCclock20100101v043.fits)
     @param url: url where the clock correction file is located
     @param caldb: location of the local CALDB
     @return:
@@ -78,6 +78,7 @@ def update_clockcor(version, file,
     """
     os.chdir(caldb)
     print '\nChanging directory to '+caldb
+    print '\nCreating tar files'
     stat=subprocess.call(['tar','-cvf','tmp/goodfiles_nustar_fpm.tar', 'data/nustar/fpm/bcf', 'data/nustar/fpm/cpf',
                           'data/nustar/fpm/index', 'data/nustar/fpm/caldb.indx'])
     if stat<>0:
@@ -100,5 +101,7 @@ def update_clockcor(version, file,
     os.chdir(curdir)
 
 if __name__ == "__main__":
-    update_clockcor('20150114', 'nuCclock20100101v043.fits', caldb='/fuse/caldb_staging/data/nustar/versions/20150114')
+    caldb = '/fuse/caldb'
+    update_clockcor('20150904', 'nuCclock20100101v051.fits', caldb=caldb)
+    #update_clockcor('20150114', 'nuCclock20100101v043.fits', caldb='/fuse/caldb_staging/data/nustar/versions/20150114')
     #update_clockcor('20150114','nuCclock20100101v043.fits',caldb='/Volumes/USRA16/caldb')
