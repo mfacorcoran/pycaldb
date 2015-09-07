@@ -16,3 +16,4 @@ pycaldb contains the following functions:
 
 import pycaldb
 from caldb_supported_missions import *
+from nustar_clockcor import *
