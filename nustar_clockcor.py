@@ -1,9 +1,13 @@
 
-def update_clockcor(version, file, url='http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/Clockfile/', caldb='/FTP/caldb'):
+def update_clockcor(version, file,
+                    url='http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/Clockfile/',
+                    caldb='/FTP/caldb'):
     """
     this updates the nustar caldb for a new clock correction file
-    @param version: should be of the form YYYYMMDD, i.e. the year, month, date of release of the new clock correction file
-    which for the clock correction file should be the "valid up to" date (for eg, for v43, 2015-01-14)
+    @param version: should be of the form YYYYMMDD, i.e. the
+    year, month, date of release of the new clock correction file
+    which for the clock correction file should be the "valid up to"
+    date (for eg, for v43, 2015-01-14)
     @param file: name of the new clock correction file
     @param url: url where the clock correction file is located
     @param caldb: location of the local CALDB
