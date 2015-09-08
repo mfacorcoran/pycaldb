@@ -33,8 +33,7 @@ def update_clockcor(version, file,
     a = subprocess.check_output('ftverify '+nuclockfile_caldb, shell=True) # returns output of ftverify as a file object
     print a[a.find('Verification found'):] # print summary of Verification results
     if (a.find('0 warning') and a.find('0 error')) < 0:
-        print 'Warning or Error found by ftverify'
-        print 'Stopping'
+        print 'Warning or Error found by ftverify: Stopping'
         return
     print 'Continuing with caldb ingest'
     newindx='caldb.indx'+version.strip()
@@ -44,7 +43,8 @@ def update_clockcor(version, file,
     print 'Copying '+caldb+'/data/nustar/fpm/caldb.indx to '+caldb+'/data/nustar/fpm/index/'+newindx
     stat = subprocess.call(['cp', caldb+'/data/nustar/fpm/caldb.indx', caldb+'/data/nustar/fpm/index/'+newindx])
     if stat<>0:
-        print 'Error in copying caldb.indx to '+newindx
+        print 'Error in copying caldb.indx to '+newindx+': Stopping'
+        return
     """
     2b) then run udcif to add the new clock correction file to the new caldb.indx file
     (remember to set the $CALDB variable as /web_chroot/FTP/caldb if on heasarcdev)
@@ -62,7 +62,7 @@ def update_clockcor(version, file,
     a = subprocess.check_output('ftverify '+caldb+'/data/nustar/fpm/index/'+newindx, shell=True) # returns output of ftverify as a file object
     print a[a.find('Verification found'):] # print summary of Verification results
     if (a.find('0 warning') and a.find('0 error')) < 0:
-        print 'Warning or Error found by ftverify'
+        print 'Warning or Error found by ftverify: Stopping'
         print 'Stopping'
         return
     """
@@ -72,7 +72,8 @@ def update_clockcor(version, file,
     os.chdir(caldb+'/data/nustar/fpm')
     stat=subprocess.call(['ln','-nfs','index/'+newindx,'caldb.indx'])
     if stat<>0:
-        print 'Error in making caldb.indx symbolic link'
+        print 'Error in making caldb.indx symbolic link: Stopping'
+        return
     """
     4) Create the tar files
     """
