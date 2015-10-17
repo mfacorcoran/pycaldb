@@ -1,3 +1,6 @@
+"""
+See /FTP/caldb/local/software/pycaldb
+"""
 
 def update_clockcor(version, file,
                     url='http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/Clockfile/',
