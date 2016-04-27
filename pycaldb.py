@@ -1,11 +1,16 @@
+import pyfits
+import os
+import datetime
+import pdb
+import numpy as np
+from astropy.time import Time
+import glob
 
 def get_cif(telescope,instrument, cif=None):
     """
     reads the caldb.indx file for a given telescope and instrument, for either a local caldb installation
     or a remote installation access via http or ftp
     """
-    import pyfits
-    import os
 
     try:
         caldb=os.environ['CALDB']
@@ -26,12 +31,6 @@ filter="none", cal_vsd="today", cal_vst="now", cal_qual=0, caldb='ftp://heasarc.
     Returns files from the caldb.indx file for a given telescope, instrument, which matches the cal_cnam, filter
     calibration boundary etc
     """
-    import pyfits
-    import os  
-    import datetime
-    import pdb
-    import numpy as np
-    from astropy.time import Time
     hdulist=get_cif(telescope,instrument, caldb=caldb)
     if hdulist==0:
         print "CIF not found for telescope %s instrument %s" % (telescope, instrument)
@@ -111,13 +110,6 @@ def get_cbds(telescope, instrument, caldb='http://heasarc.gsfc.nasa.gov/FTP/cald
     to test for the existence of a parname:
     cbd.has_key('parname2') (evaluates to true if parname2 is a key in the dictionary)
     """
-    import urllib
-    import pyfits
-    import os  
-    import datetime
-    import pdb
-    import numpy as np
-    from astropy.time import Time
     #print cal_cbd
     #urllib.urlcleanup() # this apparently removes the file 
     hdulist=get_cif(telescope, instrument, caldb=caldb)
@@ -160,7 +152,6 @@ def parse_cbd(bound, chatter=0):
     for a boundary string of the form PARAM(VALUE)UNIT, returns the parameter name, min and max allowed value,
     (and unit string if any) as a python list (param, minval, maxval, unit)
     """
-    import numpy as np
     #print "parse_cbd: Bound = %s" % bound
     test=np.asarray(bound.split("(")) # split the string at the "(" into a list; use numpy.asarray to convert to an array
     param=test[0]
@@ -204,8 +195,6 @@ def ck_file_existence(cif,caldb="/FTP/caldb"):
     retrieves the list of files from the cif and their corresponding directories
     then checks the specified caldb for them
     """
-    import os
-    import pyfits
     cifdata=cif[1].data
     calfile=cifdata.field('cal_file')
     caldir=cifdata.field('cal_dir')
@@ -221,6 +210,34 @@ def ck_file_existence(cif,caldb="/FTP/caldb"):
             print "CIF FILE %s DOES NOT EXIST in %s" % (f,caldb)
     print "Checking Complete"
     return
+
+def get_calpars (toolname, package='heasoft'):
+    """
+    for the given toolname (like xrtmkarf), this returns a dictionary of the parameters
+    which except the string CALDB
+    :param toolname:
+    :return:
+    """
+    envname = 'LHEASOFT'
+    calpars = {} # define calpars dictionary
+    if package.lower().strip() == 'heasoft':
+        try:
+            pfiledir = os.getenv(envname)+'/syspfiles'
+        except:
+            print "Package = {0} but problem accessing envirionment variable ${1}".format(package, envname)
+            return 0
+        parfile = pfiledir+'/'+toolname+'.par'
+        with open (parfile,'r') as pf:
+            pars=pf.readlines()
+        parnames={}
+        calpars={}
+        for p in pars:
+            if 'CALDB' in p:
+                pname = p.split(',')[0]
+                pdesc = p.split(',')[6]
+                parnames.update({pname:pdesc})
+        calpars[toolname]=parnames
+    return calpars
 
 
 def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
