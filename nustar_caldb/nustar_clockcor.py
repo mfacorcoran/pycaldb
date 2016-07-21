@@ -19,7 +19,7 @@ def update_clockcor(version, file,
     import urllib
     import subprocess
     import os
-    import pyfits
+    #from astropy.io import fits as pyfits
     # file should be of the form nuCclock20100101v043.fits
     nuclockdir=caldb+'/data/'+'nustar/fpm/bcf/clock'
     nuclockfile=url+'/'+file
