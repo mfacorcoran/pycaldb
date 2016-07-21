@@ -1,4 +1,4 @@
-import pyfits
+from astropy.io import fits as pyfits
 import os
 import datetime
 import pdb
@@ -189,7 +189,7 @@ def parse_cbd(bound, chatter=0):
     return cbd #returns python list (string, number or string, number or string, string)
     
 
-def ck_file_existence(cif,caldb="/FTP/caldb"):
+def ck_file_existence(cif,caldb="/FTP/caldb", quiet=True):
     """
     for a cif hdulist structure (as returned, for example, by get_cif(), or from cif=pyfits.open(PATH_TO_CIF))
     retrieves the list of files from the cif and their corresponding directories
@@ -200,16 +200,21 @@ def ck_file_existence(cif,caldb="/FTP/caldb"):
     caldir=cifdata.field('cal_dir')
     files=caldir+'/'+calfile
     files=files.replace(" ","") # removes all whitespace
+    files = list(set(files)) # get all unique file names
+    missing=[]
     for f in files:
         #print "File = %s" % f
         file_path=caldb+'/'+f
         if os.path.exists(file_path):
-            print "%s exists in %s" % (f,caldb)
-            hdu=pyfits.open(file_path, checksum=True)
+            if not quiet:
+                print "%s exists in %s" % (f,caldb)
+                hdu=pyfits.open(file_path, checksum=True)
         else:
-            print "CIF FILE %s DOES NOT EXIST in %s" % (f,caldb)
+            print "FILE %s in caldb.indx file DOES NOT EXIST in %s" % (f,caldb)
+            status = -99
+            missing.append(f)
     print "Checking Complete"
-    return
+    return missing
 
 def get_calpars (toolname, package='heasoft'):
     """
@@ -224,11 +229,8 @@ def get_calpars (toolname, package='heasoft'):
         try:
             pfiledir = os.getenv(envname)+'/syspfiles'
         except:
-<<<<<<< HEAD
             print "Package = {0} but problem accessing environment variable ${1}".format(package, envname)
-=======
             print "Package = {0} but problem accessing envirionment variable ${1}".format(package, envname)
->>>>>>> master
             return 0
         parfile = pfiledir+'/'+toolname+'.par'
         with open (parfile,'r') as pf:
