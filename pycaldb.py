@@ -198,23 +198,54 @@ def ck_file_existence(cif,caldb="/FTP/caldb", quiet=True):
     cifdata=cif[1].data
     calfile=cifdata.field('cal_file')
     caldir=cifdata.field('cal_dir')
-    files=caldir+'/'+calfile
-    files=files.replace(" ","") # removes all whitespace
-    files = list(set(files)) # get all unique file names
+    files=[]
+    for icf in range(len(caldir)):
+        files.append(caldir[icf].strip() + '/' + calfile[icf].strip())
+    ufiles = list(set(files)) # get all unique file names
     missing=[]
-    for f in files:
+    for f in ufiles:
         #print "File = %s" % f
         file_path=caldb+'/'+f
         if os.path.exists(file_path):
             if not quiet:
                 print "%s exists in %s" % (f,caldb)
-                hdu=pyfits.open(file_path, checksum=True)
+            hdu=pyfits.open(file_path, checksum=True)
+            hdu.verify('exception')
         else:
-            print "FILE %s in caldb.indx file DOES NOT EXIST in %s" % (f,caldb)
+            print "\nFILE %s in caldb.indx file DOES NOT EXIST in %s" % (f,caldb)
             status = -99
             missing.append(f)
     print "Checking Complete"
     return missing
+
+def get_calqual(cif,file):
+    """
+    for a cif hdulist structure (as returned, for example, by get_cif(), or from cif=pyfits.open(PATH_TO_CIF))
+    retrieves the CAL_QUAL for the extensions in the file
+    """
+    data=cif[1].data
+    calfiles = data['CAL_FILE']
+    caldir = data['CAL_DIR']
+    calqual = data['CAL_QUAL']
+    calxno = data['CAL_XNO']
+    cf=[]
+    for c in calfiles:
+        cf.append(c.strip()) # remove any whitespaces in the cal file name
+    ind = np.where(np.asarray(cf)==file.strip())[0]
+    if len(ind) == 0:
+        print "File {0} not found in CIF; returning".format(file)
+        xno=0
+        cqual=5
+        return xno,cqual
+    else:
+        print "File = {0}".format(file)
+        xno = calxno[ind]
+        cqual = calqual[ind]
+        cdir = caldir[ind]
+        for i in range(len(ind)):
+            print "{0}/{1}[{2}] CAL_QUAL = {3} (Row = {4})".format(cdir[i].strip(),file,calxno[i],cqual[i],ind[i])
+    return xno, cqual
+
 
 def get_calpars (toolname, package='heasoft'):
     """
