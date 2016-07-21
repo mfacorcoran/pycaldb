@@ -243,7 +243,7 @@ def get_calqual(cif,file):
         cqual = calqual[ind]
         cdir = caldir[ind]
         for i in range(len(ind)):
-            print "{0}/{1}[{2}] CAL_QUAL = {3} (Row = {4})".format(cdir[i].strip(),file,calxno[i],calqual[i],ind[i])
+            print "{0}/{1}[{2}] CAL_QUAL = {3} (Row = {4})".format(cdir[i].strip(),file,calxno[i],cqual[i],ind[i])
     return xno, cqual
 
 

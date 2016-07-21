@@ -2,7 +2,8 @@ def patch_nustar_caldb(version,
                        nupatchserver = "hassif.caltech.edu",
                        nupatchworkdir = "/pub/nustar/pipeline",
                        caldb = "/FTP/caldb",
-                       caldbstage = "/FTP/caldb/staging"):
+                       caldbstage = "/FTP/caldb/staging",
+                       ck_file_exists='True'):
     """
     CALLING SEQUENCE:
 
@@ -94,12 +95,11 @@ def patch_nustar_caldb(version,
     from pycaldb import ck_file_existence
     from astropy.io import fits as pyfits
 
-
     #
     # create patch install directory
     #
     versiondir=caldbstage+"/data/nustar/versions/"+version.strip().lower()
-    patchinstalldir = versiondir+'/fpm'
+    patchinstalldir = versiondir
     if os.path.isdir(versiondir):
         ans = raw_input("{0} exists; Do you want to remove it (Y/n)? ".format(versiondir))
         try:
@@ -117,17 +117,17 @@ def patch_nustar_caldb(version,
     #
     #create a full version of the existing nustar caldb in the
     #    $CALDB/data/nustar in the nustar/versions are via rsync:
-    cdirs=['bcf','cpf','index', 'caldb.indx']
-    for c in cdirs:
-        cmd = "rsync -avz " + caldb + "/data/nustar/fpm/" + c + " " + patchinstalldir + "/"
-        if os.path.isdir(patchinstalldir+'/'+c):
-            ans = raw_input('\nDirectory '+patchinstalldir+'/'+c+' Exists.  Remove it and re-download (Y/n)? ')
-            if ans.lower().strip()[0] == 'y':
-                shutil.rmtree(patchinstalldir+'/'+c)
-            else:
-                cmd = "echo keeping pre-existing directory "+patchinstalldir+'/'+c
-        print (cmd)
-        os.system(cmd)
+    # cdirs=['bcf','cpf','index', 'caldb.indx']
+    # for c in cdirs:
+    #     cmd = "rsync -avz " + caldb + "/data/nustar/fpm/" + c + " " + patchinstalldir + "/fpm"
+    #     if os.path.isdir(patchinstalldir+'/fpm/'+c):
+    #         ans = raw_input('\nDirectory '+patchinstalldir+'/fpm/'+c+' Exists.  Remove it and re-download (Y/n)? ')
+    #         if ans.lower().strip()[0] == 'y':
+    #             shutil.rmtree(patchinstalldir+'/'+c)
+    #         else:
+    #             cmd = "echo keeping pre-existing directory "+patchinstalldir+'/fpm/'+c
+    #     print (cmd)
+    #     os.system(cmd)
     #
     # get the patch file
     #
@@ -145,6 +145,7 @@ def patch_nustar_caldb(version,
     print('\nExtracting {0} to {1}'.format(patchfile, patchinstalldir))
     ptf = tarfile.open(patchinstalldir+'/'+patchfile)
     ptf.extractall(patchinstalldir)
+    newfiles = ptf.getnames()
     #
     # Link the updated version to staging/data/nustar/fpm:
     #
@@ -152,17 +153,23 @@ def patch_nustar_caldb(version,
     dst = caldbstage+'/data/nustar/fpm'
     if os.path.islink(dst):
         os.remove(dst)
-    print "Creating symbolic link from {0} to {1}".format(patchinstalldir, dst)
-    os.symlink(patchinstalldir, dst)
+    print "Creating symbolic link from {0} to {1}".format(patchinstalldir+"/fpm", dst)
+    try:
+        os.symlink(patchinstalldir+'/fpm', dst)
+    except:
+        print "Problem creating symbolic link to "+dst+"; Returning"
+        return
     #
-    # check that all files exist in the new caldb
+    # check that all files in the cif exist in the new caldb
     #
-    cif = pyfits.open(caldbstage+'/data/nustar/fpm/caldb.indx')
-    missing = ck_file_existence(cif, caldb=caldbstage)
-    if len(missing) > 0:
-        print "\nThese files are missing from the caldb:"
-        for f in missing:
-            print f
+    if ck_file_exists:
+        print ("\nChecking existence of files in the caldb.indx file...")
+        cif = pyfits.open(caldbstage+'/data/nustar/fpm/caldb.indx')
+        missing = ck_file_existence(cif, caldb=caldbstage, quiet=True)
+        if len(missing) > 0:
+            print "\nThese files are missing from the caldb:"
+            for f in missing:
+                print f
     #
     # create update file in staging/nustar/to_ingest directory
     #
@@ -172,15 +179,36 @@ def patch_nustar_caldb(version,
                'To: caldbingest@bigbang.gsfc.nasa.gov\n\n' \
                'instrument=fpm\n' \
                'caldbindexfile=caldb.indx'+version.strip()+'\n\n' \
-               'newfile\n\n' \
-               '<ENTER LIST OF NEWFILES HERE>\n\n' \
-               'endnewfile\n'
-    ingestfile = caldbstage+'/data/nustar/to_ingest/caldb_update_nustar_'+version.strip()+'.txt'
+               'newfile\n'
+    for f in newfiles: # get file list from patch tarfile
+        name=f.split('fpm/')[1]
+        if not 'caldb.indx' in name.strip().lower(): # don't include caldb.indx files in ingest note
+            update_txt=update_txt+name+"\n"
+    update_txt=update_txt+'endnewfile\n'
+    ingestfilename = 'caldb_update_nustar_'+version.strip()+'.txt'
+    ingestfile = caldbstage+'/data/nustar/to_ingest/'+ingestfilename
     print('Creating {0}'.format(ingestfile))
     fingest = open(ingestfile,'w')
     fingest.write(update_txt)
     fingest.close()
-    print('\nEdit {0} and enter list of new files from the update e-mail from BG'.format(ingestfile))
+    #print('\nEdit {0} and enter list of new files from the update e-mail from BG'.format(ingestfile))
+    #
+    # make symlink to caldb_update.txt file
+    #
+    curdir=os.getcwd()
+    to_ingestdir = caldbstage+"/data/nustar/to_ingest"
+    updatefile='caldb_update.txt'
+    os.chdir(to_ingestdir)
+    print "Creating symbolic link from {0} to {1} in {2}".format(ingestfilename, updatefile,to_ingestdir)
+    if os.path.islink(updatefile):
+        os.remove(updatefile)
+    try:
+        os.symlink(ingestfile, updatefile)
+    except:
+        print "Problem creating symbolic link to "+updatefile+"; Returning"
+        return
+    os.chdir(curdir)
+
     return
 
 
@@ -191,4 +219,4 @@ if __name__ == "__main__":
     #
     caldb="/fuse/caldb"
     stage = '/fuse/caldb_stage'
-    patch_nustar_caldb('20160606', caldb=caldb, caldbstage=stage)
+    patch_nustar_caldb('20160606', caldb=caldb, caldbstage=stage, ck_file_exists=False)
