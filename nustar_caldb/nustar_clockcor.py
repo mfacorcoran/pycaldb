@@ -1,10 +1,17 @@
+"""
+See /FTP/caldb/local/software/pycaldb
+"""
 
-def update_clockcor(version, file, url='http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/Clockfile/', caldb='/FTP/caldb'):
+def update_clockcor(version, file,
+                    url='http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/Clockfile/',
+                    caldb='/FTP/caldb'):
     """
     this updates the nustar caldb for a new clock correction file
-    @param version: should be of the form YYYYMMDD, i.e. the year, month, date of release of the new clock correction file
-    which for the clock correction file should be the "valid up to" date (for eg, for v43, 2015-01-14)
-    @param file: name of the new clock correction file
+    @param version: should be of the form YYYYMMDD, i.e. the
+    year, month, date of release of the new clock correction file
+    which for the clock correction file should be the "valid up to"
+    date (for eg, for v43, version = "20150114")
+    @param file: name of the new clock correction file (nuCclock20100101v043.fits)
     @param url: url where the clock correction file is located
     @param caldb: location of the local CALDB
     @return:
@@ -29,8 +36,7 @@ def update_clockcor(version, file, url='http://www.srl.caltech.edu/NuSTAR_Public
     a = subprocess.check_output('ftverify '+nuclockfile_caldb, shell=True) # returns output of ftverify as a file object
     print a[a.find('Verification found'):] # print summary of Verification results
     if (a.find('0 warning') and a.find('0 error')) < 0:
-        print 'Warning or Error found by ftverify'
-        print 'Stopping'
+        print 'Warning or Error found by ftverify: Stopping'
         return
     print 'Continuing with caldb ingest'
     newindx='caldb.indx'+version.strip()
@@ -40,7 +46,8 @@ def update_clockcor(version, file, url='http://www.srl.caltech.edu/NuSTAR_Public
     print 'Copying '+caldb+'/data/nustar/fpm/caldb.indx to '+caldb+'/data/nustar/fpm/index/'+newindx
     stat = subprocess.call(['cp', caldb+'/data/nustar/fpm/caldb.indx', caldb+'/data/nustar/fpm/index/'+newindx])
     if stat<>0:
-        print 'Error in copying caldb.indx to '+newindx
+        print 'Error in copying caldb.indx to '+newindx+': Stopping'
+        return
     """
     2b) then run udcif to add the new clock correction file to the new caldb.indx file
     (remember to set the $CALDB variable as /web_chroot/FTP/caldb if on heasarcdev)
@@ -58,7 +65,7 @@ def update_clockcor(version, file, url='http://www.srl.caltech.edu/NuSTAR_Public
     a = subprocess.check_output('ftverify '+caldb+'/data/nustar/fpm/index/'+newindx, shell=True) # returns output of ftverify as a file object
     print a[a.find('Verification found'):] # print summary of Verification results
     if (a.find('0 warning') and a.find('0 error')) < 0:
-        print 'Warning or Error found by ftverify'
+        print 'Warning or Error found by ftverify: Stopping'
         print 'Stopping'
         return
     """
@@ -68,12 +75,14 @@ def update_clockcor(version, file, url='http://www.srl.caltech.edu/NuSTAR_Public
     os.chdir(caldb+'/data/nustar/fpm')
     stat=subprocess.call(['ln','-nfs','index/'+newindx,'caldb.indx'])
     if stat<>0:
-        print 'Error in making caldb.indx symbolic link'
+        print 'Error in making caldb.indx symbolic link: Stopping'
+        return
     """
     4) Create the tar files
     """
     os.chdir(caldb)
     print '\nChanging directory to '+caldb
+    print '\nCreating tar files'
     stat=subprocess.call(['tar','-cvf','tmp/goodfiles_nustar_fpm.tar', 'data/nustar/fpm/bcf', 'data/nustar/fpm/cpf',
                           'data/nustar/fpm/index', 'data/nustar/fpm/caldb.indx'])
     if stat<>0:
@@ -96,5 +105,8 @@ def update_clockcor(version, file, url='http://www.srl.caltech.edu/NuSTAR_Public
     os.chdir(curdir)
 
 if __name__ == "__main__":
-    update_clockcor('20150114', 'nuCclock20100101v043.fits', caldb='/fuse/caldb_staging/data/nustar/versions/20150114')
+    caldb = '/web_chroot/FTP/caldb' # appropriate for running as caldbmgr on heasarcdev
+    update_clockcor('20151008', 'nuCclock20100101v052.fits', caldb=caldb)
+    #update_clockcor('20150904', 'nuCclock20100101v051.fits', caldb=caldb)
+    #update_clockcor('20150114', 'nuCclock20100101v043.fits', caldb='/fuse/caldb_staging/data/nustar/versions/20150114')
     #update_clockcor('20150114','nuCclock20100101v043.fits',caldb='/Volumes/USRA16/caldb')
