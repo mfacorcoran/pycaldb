@@ -116,7 +116,8 @@ def update_clockcor(version, file,
 
 if __name__ == "__main__":
     caldb = '/web_chroot/FTP/caldb' # appropriate for running as caldbmgr on heasarcdev
-    update_clockcor('20151008', 'nuCclock20100101v052.fits', caldb=caldb)
+    update_clockcor('20160731','nuCclock20100101v060.fits', caldb=caldb)
+    #update_clockcor('20151008', 'nuCclock20100101v052.fits', caldb=caldb)
     #update_clockcor('20150904', 'nuCclock20100101v051.fits', caldb=caldb)
     #update_clockcor('20150114', 'nuCclock20100101v043.fits', caldb='/fuse/caldb_staging/data/nustar/versions/20150114')
     #update_clockcor('20150114','nuCclock20100101v043.fits',caldb='/Volumes/USRA16/caldb')
