@@ -19,9 +19,10 @@ def update_clockcor(version, file,
     import urllib
     import subprocess
     import os
-    #from astropy.io import fits as pyfits
+    from astropy.io import fits as pyfits
     # file should be of the form nuCclock20100101v043.fits
-    nuclockdir=caldb+'/data/'+'nustar/fpm/bcf/clock'
+    nuclockdir=caldb+'/data/nustar/fpm/bcf/clock'
+    nucifdir = caldb+'/data/nustar/fpm/index'
     nuclockfile=url+'/'+file
     nuclockfile_caldb=nuclockdir+'/'+file
     """
@@ -43,8 +44,8 @@ def update_clockcor(version, file,
     """
     2a) copy the current index file as the new index file
     """
-    print 'Copying '+caldb+'/data/nustar/fpm/caldb.indx to '+caldb+'/data/nustar/fpm/index/'+newindx
-    stat = subprocess.call(['cp', caldb+'/data/nustar/fpm/caldb.indx', caldb+'/data/nustar/fpm/index/'+newindx])
+    print 'Copying '+caldb+'/data/nustar/fpm/caldb.indx to '+nucifdir+'/'+newindx
+    stat = subprocess.call(['cp', caldb+'/data/nustar/fpm/caldb.indx', nucifdir+'/'+newindx])
     if stat<>0:
         print 'Error in copying caldb.indx to '+newindx+': Stopping'
         return
@@ -61,12 +62,17 @@ def update_clockcor(version, file,
     """
     2d) update the CALDBVER keyword in the caldb.indx file
     """
-    # TODO: ADD CALDBVER UPDATE
+    os.chdir(nucifdir) # change directory to cif index directory
+    cifhdu = pyfits.open(newindx)
+    cifhdu[1].header['CALDBVER'] = version
+    print "Updating CALDBVER keyword to {0} and writing to {1}".format(version, nucifdir+'/'+newindx)
+    cifhdu.writeto(nucifdir+'/'+newindx,output_verify='fix', clobber=True, checksum=True)
+    os.chdir(curdir)
     """
     2d) ftverify the  new caldb.indx file
     """
     print '\nFTVerifying '+caldb+'/data/nustar/fpm/index/'+newindx
-    a = subprocess.check_output('ftverify '+caldb+'/data/nustar/fpm/index/'+newindx, shell=True) # returns output of ftverify as a file object
+    a = subprocess.check_output('ftverify '+nucifdir+'/'+newindx, shell=True) # returns output of ftverify as a file object
     print a[a.find('Verification found'):] # print summary of Verification results
     if (a.find('0 warning') and a.find('0 error')) < 0:
         print 'Warning or Error found by ftverify: Stopping'
@@ -75,7 +81,7 @@ def update_clockcor(version, file,
     """
     3) make a link to the new caldb.indx file
     """
-    print 'Making link from '+caldb+'/data/nustar/fpm/index/'+newindx+' to '+caldb+'/data/nustar/fpm/caldb.indx'
+    print 'Making link from '+nucifdir+'/'+newindx+' to '+caldb+'/data/nustar/fpm/caldb.indx'
     os.chdir(caldb+'/data/nustar/fpm')
     stat=subprocess.call(['ln','-nfs','index/'+newindx,'caldb.indx'])
     if stat<>0:
