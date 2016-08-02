@@ -6,18 +6,23 @@ import numpy as np
 from astropy.time import Time
 import glob
 
-def get_cif(telescope,instrument, cif=None):
+def get_cif(telescope,instrument, cif=''):
     """
     reads the caldb.indx file for a given telescope and instrument, for either a local caldb installation
     or a remote installation access via http or ftp
+    : param telescope = telescope specification for cif
+    : param instrument = instrument specification for telescope
+    : param cif =  allows user to request a specific cif
+            (cif = "http://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/index/caldb.indx20160502")
+    : return
     """
-
     try:
         caldb=os.environ['CALDB']
     except KeyError:
         print "Your $CALDB environment variable does not seem to be set"
         return
-    cif=caldb+"/data/"+telescope.strip().lower()+"/"+instrument.strip().lower()+"/caldb.indx"
+    if not cif: # if cif not specified get latest cif from telescope and instrument
+        cif=caldb+"/data/"+telescope.strip().lower()+"/"+instrument.strip().lower()+"/caldb.indx"
     try:
         hdulist = pyfits.open(cif)
     except:
@@ -187,7 +192,6 @@ def parse_cbd(bound, chatter=0):
             maxval=float(maxval)
         cbd=(param, minval, maxval, unit)
     return cbd #returns python list (string, number or string, number or string, string)
-    
 
 def ck_file_existence(cif,caldb="/FTP/caldb", quiet=True):
     """
@@ -217,6 +221,40 @@ def ck_file_existence(cif,caldb="/FTP/caldb", quiet=True):
             missing.append(f)
     print "Checking Complete"
     return missing
+
+def ck_calfile_presence(filename,telescope,instrument, caldb = 'http://heasarc.gsfc.nasa.gov/FTP/caldb'
+                        cif=''):
+    """
+    for a specified filename, searches the specified cif for the presence of the file, then
+    determines if the file exists in the caldb
+    :param filename:
+    :param cif:
+    :return:
+    """
+    if not cif:
+        cif = caldb + '/data/' + telescope + '/' + instrument
+        cifhdu = get_cif(cif=cif)
+    else:
+        ciuhdy = get_cif(cif=cif)
+    cfiles = cifhdu[1].data['CAL_FILE']
+    cal_xno = cifhdu[1].data['CAL_XNO']
+    cal_cnam = cifhdu[1].data['CAL_CNAM']
+    status = -1
+    for cf in range(len(cfiles)):
+        if filename in cfiles[cf]:
+            print "{0} found in CIF {1}".format(filename, cif)
+            status = 0
+            #
+            # verify that file exists in the caldb, at the correct location,
+            # with the correct numbers of FITS extensions
+            #
+            # TODO: GET CALDIR, XNO, CNAM, from CIF and check that the file exists, with the correct extension and CNAM
+            pass
+        pass
+    return
+
+
+
 
 def get_calqual(cif,file):
     """

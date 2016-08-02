@@ -114,8 +114,46 @@ def update_clockcor(version, file,
 
     os.chdir(curdir)
 
+
+def get_clockcor(nucchtml=
+                                'http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/clockfile.php'):
+    """
+    Gets list of all the nustar clock corrections listed on nucchtml,
+    returns a dictionary ordered by most recent [0] to oldest [-1] clock correction file
+    :param nucchtml: URL where nustar clock corrections are listed
+    :return:
+    """
+    import requests
+    from bs4 import BeautifulSoup
+
+    cchtml = requests.get(nucchtml)
+    ccsoup = BeautifulSoup(cchtml.text,'lxml')
+    li = ccsoup.find_all('li')
+    nuccfile = []
+    nuccvalidity = []
+    for l in li:
+        if 'nuCclock' in l.text:
+            nuccfile.append(l.text.split('(')[0].strip())
+            nuccvalidity.append(l.text.split('(valid up to')[1].strip().replace(')','').replace('-',''))
+    nucc = {'clock correction file':nuccfile, 'Valid through':nuccvalidity}
+    return nucc
+
+def check_clockcor_version(ClockCorFile):
+    """
+    for the specified clockcorversion and clockcorfile check to see that the the clockcorfile is in the CALDB,
+    and in the latest caldb.indx file
+    :param ClockCorVersion:
+    :param ClockCorFile:
+    :return:
+    """
+
+
 if __name__ == "__main__":
     caldb = '/web_chroot/FTP/caldb' # appropriate for running as caldbmgr on heasarcdev
+    # nucc = nustar_get_clockcor()
+    # nucckeys = nucc.keys()
+    # for i in range(len(nucc[nucckeys[0]])):
+    #     print nucc[nucckeys[0]][i], nucc[nucckeys[1]][i]
     update_clockcor('20160731','nuCclock20100101v060.fits', caldb=caldb)
     #update_clockcor('20151008', 'nuCclock20100101v052.fits', caldb=caldb)
     #update_clockcor('20150904', 'nuCclock20100101v051.fits', caldb=caldb)

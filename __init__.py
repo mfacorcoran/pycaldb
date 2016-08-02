@@ -30,12 +30,12 @@ pycaldb contains the following functions:
                ck_file_existence(cif,caldb="/FTP/caldb")
 """
 
-print "Importing pycaldb as pyc"
-import pycaldb as pyc
-print "Importing caldb_supported_missions as csm"
-import caldb_supported_missions as csm
-print "Importing CHANDRA_CALDB_Update as ch"
-import CHANDRA_CALDB_Update as ch
-import cif_summary
-print "Importing nustar_caldb"
-from nustar_caldb import *
+import pycaldb
+# import pycaldb.pycaldb as pycaldb
+# print "Importing caldb_supported_missions as csm"
+# import caldb_supported_missions
+# print "Importing CHANDRA_CALDB_Update as ch"
+# import CHANDRA_CALDB_Update as ch
+# import cif_summary
+# print "Importing nustar_caldb"
+# from nustar_caldb import *
