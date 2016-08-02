@@ -222,7 +222,7 @@ def ck_file_existence(cif,caldb="/FTP/caldb", quiet=True):
     print "Checking Complete"
     return missing
 
-def ck_calfile_presence(filename,telescope,instrument, caldb = 'http://heasarc.gsfc.nasa.gov/FTP/caldb'
+def ck_calfile_presence(filename,telescope,instrument, caldb = 'http://heasarc.gsfc.nasa.gov/FTP/caldb',
                         cif=''):
     """
     for a specified filename, searches the specified cif for the presence of the file, then
