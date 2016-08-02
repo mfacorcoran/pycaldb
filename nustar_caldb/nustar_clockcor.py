@@ -19,7 +19,7 @@ def update_clockcor(version, file,
     import urllib
     import subprocess
     import os
-    import pyfits
+    #from astropy.io import fits as pyfits
     # file should be of the form nuCclock20100101v043.fits
     nuclockdir=caldb+'/data/'+'nustar/fpm/bcf/clock'
     nuclockfile=url+'/'+file
@@ -59,7 +59,11 @@ def update_clockcor(version, file,
     print "Changing directory to "+nuclockdir
     stat=subprocess.call(['udcif',file,'../../index/'+newindx, 'quality=0', 'editc=y'])
     """
-    2c) ftverify the  new caldb.indx file
+    2d) update the CALDBVER keyword in the caldb.indx file
+    """
+    # TODO: ADD CALDBVER UPDATE
+    """
+    2d) ftverify the  new caldb.indx file
     """
     print '\nFTVerifying '+caldb+'/data/nustar/fpm/index/'+newindx
     a = subprocess.check_output('ftverify '+caldb+'/data/nustar/fpm/index/'+newindx, shell=True) # returns output of ftverify as a file object
