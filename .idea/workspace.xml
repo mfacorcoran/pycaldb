@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a150a142-0f22-4fb9-b66d-3136db9d0091" name="Default" comment="update pycaldb to include che">
+    <list default="true" id="a150a142-0f22-4fb9-b66d-3136db9d0091" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/__init__.py" afterPath="$PROJECT_DIR$/__init__.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/nustar_caldb/nustar_clockcor.py" afterPath="$PROJECT_DIR$/nustar_caldb/nustar_clockcor.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pycaldb.py" afterPath="$PROJECT_DIR$/pycaldb.py" />
     </list>
     <ignored path="pycaldb.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -16,7 +13,6 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ChangesViewManager" show_ignored="true" />
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
   </component>
@@ -29,52 +25,10 @@
       <file leaf-file-name="pycaldb.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pycaldb.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="156">
-              <caret line="224" column="23" selection-start-line="224" selection-start-column="4" selection-end-line="224" selection-end-column="23" />
+            <state relative-caret-position="68">
+              <caret line="306" column="22" selection-start-line="306" selection-start-column="22" selection-end-line="306" selection-end-column="22" />
               <folding>
-                <element signature="e#0#37#0" expanded="true" />
-                <element signature="e#184#1072#0" expanded="false" />
-                <element signature="e#1287#4000#0" expanded="false" />
-                <element signature="e#1969#1970#0" expanded="false" />
-                <element signature="e#4095#4935#0" expanded="false" />
-                <element signature="e#4993#6046#0" expanded="false" />
-                <element signature="e#6085#7635#0" expanded="false" />
-                <element signature="e#6537#7546#0" expanded="false" />
-                <element signature="e#7700#8726#0" expanded="false" />
-                <element signature="e#9878#10806#0" expanded="false" />
-                <element signature="e#10860#11852#0" expanded="false" />
-                <element signature="e#11927#13860#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="pycaldb development notebook.ipynb" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pycaldb development notebook.ipynb">
-          <provider selected="true" editor-type-id="ipnb-editor">
-            <state>
-              <selected id="-1" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/__init__.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="665">
-              <caret line="35" column="33" selection-start-line="35" selection-start-column="33" selection-end-line="35" selection-end-column="33" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/nustar_caldb/__init__.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="171">
-              <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
-              <folding>
-                <element signature="e#115#147#0" expanded="true" />
+                <element signature="e#0#9#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -83,24 +37,21 @@
       <file leaf-file-name="nustar_caldb_patch.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nustar_caldb/nustar_caldb_patch.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="475">
-              <caret line="146" column="21" selection-start-line="146" selection-start-column="21" selection-end-line="146" selection-end-column="21" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="nustar_clockcor.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/nustar_caldb/nustar_clockcor.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="403">
-              <caret line="139" column="0" selection-start-line="139" selection-start-column="0" selection-end-line="139" selection-end-column="0" />
+            <state relative-caret-position="3179">
+              <caret line="187" column="66" selection-start-line="187" selection-start-column="66" selection-end-line="187" selection-end-column="66" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -112,18 +63,18 @@
         <option value="$PROJECT_DIR$/nustar-caldb/nustar_caldb_patch.py" />
         <option value="$PROJECT_DIR$/nustar-caldb/__init__.py" />
         <option value="$PROJECT_DIR$/nustar_caldb/__init__.py" />
-        <option value="$PROJECT_DIR$/nustar_caldb/nustar_caldb_patch.py" />
-        <option value="$PROJECT_DIR$/nustar_caldb/nustar_clockcor.py" />
         <option value="$PROJECT_DIR$/__init__.py" />
+        <option value="$PROJECT_DIR$/nustar_caldb/nustar_caldb_patch.py" />
+        <option value="$PROJECT_DIR$/test.html" />
         <option value="$PROJECT_DIR$/pycaldb.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="838" />
-    <option name="y" value="23" />
-    <option name="width" value="1535" />
-    <option name="height" value="1236" />
+    <option name="x" value="147" />
+    <option name="y" value="38" />
+    <option name="width" value="1293" />
+    <option name="height" value="799" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -175,7 +126,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/nustar_caldb/nustar_clockcor.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../trogip" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="239" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="249" />
@@ -194,123 +145,14 @@
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
     <property name="settings.editor.selected.configurable" value="editor.preferences.appearance" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/nustar-caldb" />
     </key>
   </component>
-  <component name="RestoreUpdateTree" date="Moments ago" ActionInfo="_Update">
-    <UpdatedFiles>
-      <FILE-GROUP>
-        <option name="myUpdateName" value="Updated from server" />
-        <option name="myStatusName" value="Changed on server" />
-        <option name="mySupportsDeletion" value="false" />
-        <option name="myCanBeAbsent" value="false" />
-        <option name="myId" value="CHANGED_ON_SERVER" />
-        <FILE-GROUP>
-          <option name="myUpdateName" value="Updated" />
-          <option name="myStatusName" value="Changed" />
-          <option name="mySupportsDeletion" value="false" />
-          <option name="myCanBeAbsent" value="false" />
-          <option name="myId" value="UPDATED" />
-          <PATH vcs="Git" revision="">$PROJECT_DIR$/nustar_caldb/nustar_clockcor.py</PATH>
-        </FILE-GROUP>
-        <FILE-GROUP>
-          <option name="myUpdateName" value="Created" />
-          <option name="myStatusName" value="Created" />
-          <option name="mySupportsDeletion" value="false" />
-          <option name="myCanBeAbsent" value="false" />
-          <option name="myId" value="CREATED" />
-        </FILE-GROUP>
-        <FILE-GROUP>
-          <option name="myUpdateName" value="Deleted" />
-          <option name="myStatusName" value="Deleted" />
-          <option name="mySupportsDeletion" value="false" />
-          <option name="myCanBeAbsent" value="true" />
-          <option name="myId" value="REMOVED_FROM_REPOSITORY" />
-        </FILE-GROUP>
-        <FILE-GROUP>
-          <option name="myUpdateName" value="Restored" />
-          <option name="myStatusName" value="Will be restored" />
-          <option name="mySupportsDeletion" value="false" />
-          <option name="myCanBeAbsent" value="false" />
-          <option name="myId" value="RESTORED" />
-        </FILE-GROUP>
-      </FILE-GROUP>
-      <FILE-GROUP>
-        <option name="myUpdateName" value="Modified" />
-        <option name="myStatusName" value="Modified" />
-        <option name="mySupportsDeletion" value="false" />
-        <option name="myCanBeAbsent" value="false" />
-        <option name="myId" value="MODIFIED" />
-      </FILE-GROUP>
-      <FILE-GROUP>
-        <option name="myUpdateName" value="Skipped" />
-        <option name="myStatusName" value="Skipped" />
-        <option name="mySupportsDeletion" value="false" />
-        <option name="myCanBeAbsent" value="false" />
-        <option name="myId" value="SKIPPED" />
-      </FILE-GROUP>
-      <FILE-GROUP>
-        <option name="myUpdateName" value="Merged with conflicts" />
-        <option name="myStatusName" value="Will be merged with conflicts" />
-        <option name="mySupportsDeletion" value="false" />
-        <option name="myCanBeAbsent" value="false" />
-        <option name="myId" value="MERGED_WITH_CONFLICTS" />
-      </FILE-GROUP>
-      <FILE-GROUP>
-        <option name="myUpdateName" value="Merged with tree conflicts" />
-        <option name="myStatusName" value="Merged with tree conflicts" />
-        <option name="mySupportsDeletion" value="false" />
-        <option name="myCanBeAbsent" value="false" />
-        <option name="myId" value="MERGED_WITH_TREE_CONFLICT" />
-      </FILE-GROUP>
-      <FILE-GROUP>
-        <option name="myUpdateName" value="Merged with property conflicts" />
-        <option name="myStatusName" value="Will be merged with property conflicts" />
-        <option name="mySupportsDeletion" value="false" />
-        <option name="myCanBeAbsent" value="false" />
-        <option name="myId" value="MERGED_WITH_PROPERTY_CONFLICT" />
-      </FILE-GROUP>
-      <FILE-GROUP>
-        <option name="myUpdateName" value="Merged" />
-        <option name="myStatusName" value="Will be merged" />
-        <option name="mySupportsDeletion" value="false" />
-        <option name="myCanBeAbsent" value="false" />
-        <option name="myId" value="MERGED" />
-      </FILE-GROUP>
-      <FILE-GROUP>
-        <option name="myUpdateName" value="Not in repository" />
-        <option name="myStatusName" value="Not in repository" />
-        <option name="mySupportsDeletion" value="true" />
-        <option name="myCanBeAbsent" value="false" />
-        <option name="myId" value="UNKNOWN" />
-      </FILE-GROUP>
-      <FILE-GROUP>
-        <option name="myUpdateName" value="Locally added" />
-        <option name="myStatusName" value="Locally added" />
-        <option name="mySupportsDeletion" value="false" />
-        <option name="myCanBeAbsent" value="false" />
-        <option name="myId" value="LOCALLY_ADDED" />
-      </FILE-GROUP>
-      <FILE-GROUP>
-        <option name="myUpdateName" value="Locally removed" />
-        <option name="myStatusName" value="Locally removed" />
-        <option name="mySupportsDeletion" value="false" />
-        <option name="myCanBeAbsent" value="false" />
-        <option name="myId" value="LOCALLY_REMOVED" />
-      </FILE-GROUP>
-      <FILE-GROUP>
-        <option name="myUpdateName" value="Switched" />
-        <option name="myStatusName" value="Switched" />
-        <option name="mySupportsDeletion" value="false" />
-        <option name="myCanBeAbsent" value="false" />
-        <option name="myId" value="SWITCHED" />
-      </FILE-GROUP>
-    </UpdatedFiles>
-  </component>
-  <component name="RunManager" selected="Python.clock correction file">
+  <component name="RunManager" selected="Python.patch nustar caldb">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -462,26 +304,8 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="clock correction file" type="PythonConfigurationType" factoryName="Python">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="/opt/local/bin/python" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/nustar_caldb" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="pycaldb" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/nustar_caldb/nustar_clockcor.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
-    <list size="2">
+    <list size="1">
       <item index="0" class="java.lang.String" itemvalue="Python.patch nustar caldb" />
-      <item index="1" class="java.lang.String" itemvalue="Python.clock correction file" />
     </list>
   </component>
   <component name="ShelveChangesManager" show_recycled="false">
@@ -498,35 +322,21 @@
       <option name="presentableId" value="Default" />
       <updated>1441130992622</updated>
     </task>
-    <task id="LOCAL-00001" summary="added file to ignored files">
-      <created>1470146798346</created>
+    <task id="LOCAL-00001" summary="added missing comma to ck_calfile_presence">
+      <created>1470174477260</created>
       <option name="number" value="00001" />
       <option name="presentableId" value="LOCAL-00001" />
       <option name="project" value="LOCAL" />
-      <updated>1470146798346</updated>
+      <updated>1470174477260</updated>
     </task>
-    <task id="LOCAL-00002" summary="added file to ignored files; added update to caldbver keyword to nustar_clockcor.py; from imac">
-      <created>1470148637157</created>
+    <task id="LOCAL-00002" summary="include 1st version of create_caldb_tar">
+      <created>1473885358626</created>
       <option name="number" value="00002" />
       <option name="presentableId" value="LOCAL-00002" />
       <option name="project" value="LOCAL" />
-      <updated>1470148637157</updated>
+      <updated>1473885358626</updated>
     </task>
-    <task id="LOCAL-00003" summary="fixed syntax error in nustar_clockcor.py">
-      <created>1470148791245</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1470148791245</updated>
-    </task>
-    <task id="LOCAL-00004" summary="added update for 20160731 clock correction">
-      <created>1470149587305</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1470149587305</updated>
-    </task>
-    <option name="localTasksCounter" value="5" />
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TodoView">
@@ -539,27 +349,27 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="838" y="23" width="1535" height="1236" extended-state="0" />
-    <editor active="true" />
+    <frame x="147" y="38" width="1293" height="799" extended-state="0" />
+    <editor active="false" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21928665" sideWeight="0.49479166" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32954547" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32867134" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20754717" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.328877" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3281471" sideWeight="0.6698113" order="0" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3281471" sideWeight="0.3301887" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32867134" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.21928665" sideWeight="0.5052083" order="0" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3951049" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.22564529" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3479491" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32897034" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39528796" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
@@ -612,11 +422,9 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="added file to ignored files" />
-    <MESSAGE value="added file to ignored files; added update to caldbver keyword to nustar_clockcor.py; from imac" />
-    <MESSAGE value="fixed syntax error in nustar_clockcor.py" />
-    <MESSAGE value="added update for 20160731 clock correction" />
-    <option name="LAST_COMMIT_MESSAGE" value="added update for 20160731 clock correction" />
+    <MESSAGE value="added missing comma to ck_calfile_presence" />
+    <MESSAGE value="include 1st version of create_caldb_tar" />
+    <option name="LAST_COMMIT_MESSAGE" value="include 1st version of create_caldb_tar" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -636,11 +444,6 @@
           <line>144</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="python-line">
-          <url>file://$PROJECT_DIR$/nustar_caldb/nustar_clockcor.py</url>
-          <line>154</line>
-          <option name="timeStamp" value="15" />
-        </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
@@ -652,18 +455,11 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="17" />
+      <option name="time" value="11" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/pycaldb development notebook.ipynb">
-      <provider selected="true" editor-type-id="ipnb-editor">
-        <state>
-          <selected id="-1" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -677,18 +473,7 @@
         <state relative-caret-position="0">
           <caret line="99" column="17" selection-start-line="99" selection-start-column="17" selection-end-line="99" selection-end-column="17" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -714,18 +499,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -751,18 +525,7 @@
         <state relative-caret-position="0">
           <caret line="253" column="7" selection-start-line="253" selection-start-column="7" selection-end-line="253" selection-end-column="7" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -781,18 +544,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -802,18 +554,7 @@
         <state relative-caret-position="0">
           <caret line="253" column="7" selection-start-line="253" selection-start-column="7" selection-end-line="253" selection-end-column="7" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -832,18 +573,7 @@
         <state relative-caret-position="0">
           <caret line="253" column="7" selection-start-line="253" selection-start-column="7" selection-end-line="253" selection-end-column="7" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -862,18 +592,7 @@
         <state relative-caret-position="0">
           <caret line="253" column="7" selection-start-line="253" selection-start-column="7" selection-end-line="253" selection-end-column="7" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -892,18 +611,7 @@
         <state relative-caret-position="0">
           <caret line="253" column="7" selection-start-line="253" selection-start-column="7" selection-end-line="253" selection-end-column="7" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -922,18 +630,7 @@
         <state relative-caret-position="0">
           <caret line="253" column="7" selection-start-line="253" selection-start-column="7" selection-end-line="253" selection-end-column="7" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -952,18 +649,7 @@
         <state relative-caret-position="0">
           <caret line="253" column="7" selection-start-line="253" selection-start-column="7" selection-end-line="253" selection-end-column="7" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -982,18 +668,7 @@
         <state relative-caret-position="0">
           <caret line="253" column="7" selection-start-line="253" selection-start-column="7" selection-end-line="253" selection-end-column="7" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1012,18 +687,7 @@
         <state relative-caret-position="0">
           <caret line="253" column="7" selection-start-line="253" selection-start-column="7" selection-end-line="253" selection-end-column="7" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1042,18 +706,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1063,18 +716,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1082,12 +724,20 @@
     <entry file="file://$PROJECT_DIR$/nustar_clockcor.py" />
     <entry file="file://$PROJECT_DIR$/nustar-caldb/nustar_caldb_patch.py" />
     <entry file="file://$PROJECT_DIR$/nustar-caldb/__init__.py" />
+    <entry file="file://$PROJECT_DIR$/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="697">
+          <caret line="41" column="0" selection-start-line="41" selection-start-column="0" selection-end-line="41" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/nustar_caldb/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
+        <state relative-caret-position="153">
           <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
           <folding>
-            <element signature="e#115#147#0" expanded="true" />
+            <element signature="e#115#147#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1099,10 +749,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../Shared/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/gzip.py">
+    <entry file="file:///Shared/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/gzip.py" />
+    <entry file="file://$PROJECT_DIR$/nustar_caldb/nustar_caldb_patch.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="326">
-          <caret line="309" column="64" selection-start-line="309" selection-start-column="64" selection-end-line="309" selection-end-column="64" />
+        <state relative-caret-position="3179">
+          <caret line="187" column="66" selection-start-line="187" selection-start-column="66" selection-end-line="187" selection-end-column="66" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1113,47 +765,26 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/nustar_caldb/nustar_caldb_patch.py">
+    <entry file="file://$PROJECT_DIR$/test.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="475">
-          <caret line="146" column="21" selection-start-line="146" selection-start-column="21" selection-end-line="146" selection-end-column="21" />
-          <folding />
+        <state relative-caret-position="323">
+          <caret line="19" column="7" selection-start-line="19" selection-start-column="7" selection-end-line="19" selection-end-column="7" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/nustar_caldb/nustar_clockcor.py">
+    <entry file="jar://$APPLICATION_HOME_DIR$/lib/pycharm.jar!/resources/html5-schema/html5/legacy.rnc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="403">
-          <caret line="139" column="0" selection-start-line="139" selection-start-column="0" selection-end-line="139" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="665">
-          <caret line="35" column="33" selection-start-line="35" selection-start-column="33" selection-end-line="35" selection-end-column="33" />
-          <folding />
+        <state relative-caret-position="240">
+          <caret line="795" column="18" selection-start-line="795" selection-start-column="18" selection-end-line="795" selection-end-column="18" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pycaldb.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="156">
-          <caret line="224" column="23" selection-start-line="224" selection-start-column="4" selection-end-line="224" selection-end-column="23" />
+        <state relative-caret-position="68">
+          <caret line="306" column="22" selection-start-line="306" selection-start-column="22" selection-end-line="306" selection-end-column="22" />
           <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <element signature="e#184#1072#0" expanded="false" />
-            <element signature="e#1287#4000#0" expanded="false" />
-            <element signature="e#1969#1970#0" expanded="false" />
-            <element signature="e#4095#4935#0" expanded="false" />
-            <element signature="e#4993#6046#0" expanded="false" />
-            <element signature="e#6085#7635#0" expanded="false" />
-            <element signature="e#6537#7546#0" expanded="false" />
-            <element signature="e#7700#8726#0" expanded="false" />
-            <element signature="e#9878#10806#0" expanded="false" />
-            <element signature="e#10860#11852#0" expanded="false" />
-            <element signature="e#11927#13860#0" expanded="false" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
