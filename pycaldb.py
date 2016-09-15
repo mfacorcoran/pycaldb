@@ -1,23 +1,26 @@
-from astropy.io import fits as pyfits
 import os
 import datetime
-import pdb
 import numpy as np
 from astropy.time import Time
-import glob
+from astropy.io import fits as pyfits
+import sys
 
-def get_cif(telescope,instrument, cif=None):
+def get_cif(telescope,instrument, cif=''):
     """
     reads the caldb.indx file for a given telescope and instrument, for either a local caldb installation
     or a remote installation access via http or ftp
+    : param telescope = telescope specification for cif
+    : param instrument = instrument specification for telescope
+    : param cif =  allows user to request a specific cif
+            (cif = "http://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/index/caldb.indx20160502")
+    : return
     """
-
     try:
         caldb=os.environ['CALDB']
     except KeyError:
-        print "Your $CALDB environment variable does not seem to be set"
-        return
-    cif=caldb+"/data/"+telescope.strip().lower()+"/"+instrument.strip().lower()+"/caldb.indx"
+        sys.exit("CALDB not defined; Returning")
+    if not cif: # if cif not specified get latest cif from telescope and instrument
+        cif=caldb+"/data/"+telescope.strip().lower()+"/"+instrument.strip().lower()+"/caldb.indx"
     try:
         hdulist = pyfits.open(cif)
     except:
@@ -187,7 +190,6 @@ def parse_cbd(bound, chatter=0):
             maxval=float(maxval)
         cbd=(param, minval, maxval, unit)
     return cbd #returns python list (string, number or string, number or string, string)
-    
 
 def ck_file_existence(cif,caldb="/FTP/caldb", quiet=True):
     """
@@ -217,6 +219,40 @@ def ck_file_existence(cif,caldb="/FTP/caldb", quiet=True):
             missing.append(f)
     print "Checking Complete"
     return missing
+
+def ck_calfile_presence(filename,telescope,instrument, caldb = 'http://heasarc.gsfc.nasa.gov/FTP/caldb',
+                        cif=''):
+    """
+    for a specified filename, searches the specified cif for the presence of the file, then
+    determines if the file exists in the caldb
+    :param filename:
+    :param cif:
+    :return:
+    """
+    if not cif:
+        cif = caldb + '/data/' + telescope + '/' + instrument
+        cifhdu = get_cif(cif=cif)
+    else:
+        ciuhdy = get_cif(cif=cif)
+    cfiles = cifhdu[1].data['CAL_FILE']
+    cal_xno = cifhdu[1].data['CAL_XNO']
+    cal_cnam = cifhdu[1].data['CAL_CNAM']
+    status = -1
+    for cf in range(len(cfiles)):
+        if filename in cfiles[cf]:
+            print "{0} found in CIF {1}".format(filename, cif)
+            status = 0
+            #
+            # verify that file exists in the caldb, at the correct location,
+            # with the correct numbers of FITS extensions
+            #
+            # TODO: GET CALDIR, XNO, CNAM, from CIF and check that the file exists, with the correct extension and CNAM
+            pass
+        pass
+    return
+
+
+
 
 def get_calqual(cif,file):
     """
@@ -265,9 +301,9 @@ def get_calpars (toolname, package='heasoft'):
             return 0
         parfile = pfiledir+'/'+toolname+'.par'
         with open (parfile,'r') as pf:
-            pars=pf.readlines()
-        parnames={}
-        calpars={}
+            pars = pf.readlines()
+        parnames = {}
+        calpars = {}
         for p in pars:
             if 'CALDB' in p:
                 pname = p.split(',')[0]
@@ -276,6 +312,55 @@ def get_calpars (toolname, package='heasoft'):
         calpars[toolname]=parnames
     return calpars
 
+def create_caldb_tar(telescop, instrume, tarName='', calQual = 0):
+    """
+    creates a tar file of "good" files for given mission/instrument.
+    Note that $CALDB must be defined if tarName is not specified
+
+    :param mission: name of the mission in the caldb (str) ex: nustar
+    :param instrume: name of the mission's instrument (str) ex: fpma
+    :param version: version of caldb.indx file to use to create tar file
+    :param tarName: name of tarfile to be created - will be constructed if not specified
+    :return:
+    """
+    import tarfile
+
+    cif = get_cif(telescop, instrume)
+    ciftab = cif[1].data
+    cqual = ciftab['CAL_QUAL']
+    cfiles = ciftab['CAL_FILE']
+    cdir = ciftab['CAL_DIR']
+
+    tel=telescop.strip()
+    instr = instrume.strip()
+
+    cwd = os.getcwd()
+
+    calQual = int(calQual) # make sure this is an integer
+
+    if not tarName:
+        try:
+            caldb = os.getenv('CALDB')
+        except:
+            sys.exit("Cannot determine $CALDB; exiting")
+        if ("ftp://" in caldb) or ("http://" in caldb):
+            print "$CALDB ={0}".format(caldb)
+            sys.exit("$CALDB needs to point to a local directory; Exiting")
+        tardir = "{0}/data/{1}/{2}".format(caldb,tel,instr)
+        os.chdir(tardir)
+        version = os.readlink('caldb.indx').split('.indx')[1].strip()
+        tarName = tardir+"/"+"goodfiles_{0}_{1}_{2}.tar.gz".format(tel, instr, version)
+
+    tar = tarfile.open(tardir+'/'+tarname, "w:gz")
+    for i in range(len(ciftab['CAL_QUAL'])):
+        if cqual[i] == calQual:
+            # add corresponding file to the tarfile
+            arcname = "{0}/{1}".format(cdir[i],cfiles[i])
+            goodfile = "{0}/{1}/{2}".format(caldb,cdir[i],cfiles[i])
+            taradd(goodfile, arcname=arcname)
+    tar.close()
+    os.chdir(cwd)
+    return
 
 def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
     import numpy as np
@@ -322,4 +407,6 @@ def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
 
 
 if __name__ == "__main__":
-    test_pycaldb(0)
+    #test_pycaldb(0)
+    os.environ['CALDB'] = '/caldb'
+    create_caldb_tar()
