@@ -4,10 +4,7 @@ import numpy as np
 from astropy.time import Time
 from astropy.io import fits as pyfits
 import sys
-<<<<<<< HEAD
-=======
 import urllib2
->>>>>>> macbook-branch
 
 def get_cif(telescope,instrument, cif=''):
     """
@@ -27,7 +24,7 @@ def get_cif(telescope,instrument, cif=''):
         cif=caldb+"/data/"+telescope.strip().lower()+"/"+instrument.strip().lower()+"/caldb.indx"
     try:
         hdulist = pyfits.open(cif)
-    except:
+    except ValueError:
         hdulist=0
     return hdulist
 
