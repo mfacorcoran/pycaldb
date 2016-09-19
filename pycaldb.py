@@ -4,6 +4,10 @@ import numpy as np
 from astropy.time import Time
 from astropy.io import fits as pyfits
 import sys
+<<<<<<< HEAD
+=======
+import urllib2
+>>>>>>> macbook-branch
 
 def get_cif(telescope,instrument, cif=''):
     """
@@ -312,19 +316,42 @@ def get_calpars (toolname, package='heasoft'):
         calpars[toolname]=parnames
     return calpars
 
+<<<<<<< HEAD
 def create_caldb_tar(telescop, instrume, tarName='', calQual = 0):
     """
     creates a tar file of "good" files for given mission/instrument.
     Note that $CALDB must be defined if tarName is not specified
+=======
+def create_caldb_tar(telescop, instrume, version, tarName = '',
+                     tardir = '', calQual = 0,
+                     caldb = "http://heasarc.gsfc.nasa.gov/FTP/caldb"):
+    """
+    creates a tar file of "good" files for given mission/instrument
+    from the HEASARC caldb.
+
+    This should provide a means to generate the tar file so a) caldbmgr can generate
+    new tar files for new caldb updates and b) allow users the ability to
+    generate a tar file of previous caldb versions to install locally
+
+    so to do this we want to
+        a) access the caldbinfo file for a specified version
+        b) read the file, get the list of all the good files for that version
+        c) create the tar file for the goodfiles (handle case of remote or local caldb)
+>>>>>>> macbook-branch
 
     :param mission: name of the mission in the caldb (str) ex: nustar
     :param instrume: name of the mission's instrument (str) ex: fpma
     :param version: version of caldb.indx file to use to create tar file
     :param tarName: name of tarfile to be created - will be constructed if not specified
+<<<<<<< HEAD
+=======
+    :param tardir: name of output directory for tarfile; if not specified use CWD
+>>>>>>> macbook-branch
     :return:
     """
     import tarfile
 
+<<<<<<< HEAD
     cif = get_cif(telescop, instrume)
     ciftab = cif[1].data
     cqual = ciftab['CAL_QUAL']
@@ -333,11 +360,19 @@ def create_caldb_tar(telescop, instrume, tarName='', calQual = 0):
 
     tel=telescop.strip()
     instr = instrume.strip()
+=======
+    #cif = get_cif(telescop, instrume)
+
+    tel=telescop.strip()
+    instr = instrume.strip()
+    ver = version.strip()
+>>>>>>> macbook-branch
 
     cwd = os.getcwd()
 
     calQual = int(calQual) # make sure this is an integer
 
+<<<<<<< HEAD
     if not tarName:
         try:
             caldb = os.getenv('CALDB')
@@ -358,6 +393,45 @@ def create_caldb_tar(telescop, instrume, tarName='', calQual = 0):
             arcname = "{0}/{1}".format(cdir[i],cfiles[i])
             goodfile = "{0}/{1}/{2}".format(caldb,cdir[i],cfiles[i])
             taradd(goodfile, arcname=arcname)
+=======
+    if not tardir:
+        tardir = os.getcwd()
+
+    cif = "{0}/data/{1}/{2}/index/caldb.indx{3}".format(caldb,tel,instr,ver)
+    try:
+        hdu = pyfits.open(cif)
+    except Exception, errmsg:
+        sys.exit("Could not open {0}; exiting".format(cif))
+
+    ciftab = hdu[1].data
+    cqual = ciftab['CAL_QUAL']
+    cfiles = ciftab['CAL_FILE']
+    cdir = ciftab['CAL_DIR']
+
+
+    if not tarName: # if tarname not specified, use "standard" naming
+        tarName = "{3}/goodfiles_{0}_{1}_{2}.tar.gz".format(tel, instr, ver, tardir)
+
+    tar = tarfile.open(tarName, "w:gz")
+    for i in range(len(ciftab['CAL_QUAL'])):
+        if cqual[i] == calQual:
+            goodfile = "{0}/{1}/{2}".format(caldb,cdir[i],cfiles[i])
+            # download the goodfile from the heasarc
+            response = urllib2.urlopen(goodfile)
+            data = response.read()
+            tmp_cfile = tardir+"/"+cfiles[i]
+            out = open(tmp_cfile,'w')
+            out.write(data)
+            out.close
+            # add corresponding file to the tarfile
+            arcname = "{0}/{1}".format(cdir[i],cfiles[i])
+            print "Adding {0}".format(tmp_cfile)
+            try:
+                tar.add(tmp_cfile, arcname=arcname)
+            except Exception, errmsg:
+                print "Error adding {0}".goodfile
+            #os.remove(tmp_cfile)
+>>>>>>> macbook-branch
     tar.close()
     os.chdir(cwd)
     return
@@ -407,6 +481,12 @@ def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     #test_pycaldb(0)
     os.environ['CALDB'] = '/caldb'
     create_caldb_tar()
+=======
+    create_caldb_tar('swift', 'xrt', '20160609 ', tardir='/Volumes/USRA16/')
+    #test_pycaldb(0)
+
+>>>>>>> macbook-branch

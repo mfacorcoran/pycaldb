@@ -19,9 +19,10 @@ def update_clockcor(version, file,
     import urllib
     import subprocess
     import os
-    import pyfits
+    from astropy.io import fits as pyfits
     # file should be of the form nuCclock20100101v043.fits
-    nuclockdir=caldb+'/data/'+'nustar/fpm/bcf/clock'
+    nuclockdir=caldb+'/data/nustar/fpm/bcf/clock'
+    nucifdir = caldb+'/data/nustar/fpm/index'
     nuclockfile=url+'/'+file
     nuclockfile_caldb=nuclockdir+'/'+file
     """
@@ -43,8 +44,8 @@ def update_clockcor(version, file,
     """
     2a) copy the current index file as the new index file
     """
-    print 'Copying '+caldb+'/data/nustar/fpm/caldb.indx to '+caldb+'/data/nustar/fpm/index/'+newindx
-    stat = subprocess.call(['cp', caldb+'/data/nustar/fpm/caldb.indx', caldb+'/data/nustar/fpm/index/'+newindx])
+    print 'Copying '+caldb+'/data/nustar/fpm/caldb.indx to '+nucifdir+'/'+newindx
+    stat = subprocess.call(['cp', caldb+'/data/nustar/fpm/caldb.indx', nucifdir+'/'+newindx])
     if stat<>0:
         print 'Error in copying caldb.indx to '+newindx+': Stopping'
         return
@@ -59,10 +60,19 @@ def update_clockcor(version, file,
     print "Changing directory to "+nuclockdir
     stat=subprocess.call(['udcif',file,'../../index/'+newindx, 'quality=0', 'editc=y'])
     """
-    2c) ftverify the  new caldb.indx file
+    2d) update the CALDBVER keyword in the caldb.indx file
+    """
+    os.chdir(nucifdir) # change directory to cif index directory
+    cifhdu = pyfits.open(newindx)
+    cifhdu[1].header['CALDBVER'] = version
+    print "Updating CALDBVER keyword to {0} and writing to {1}".format(version, nucifdir+'/'+newindx)
+    cifhdu.writeto(nucifdir+'/'+newindx,output_verify='fix', clobber=True, checksum=True)
+    os.chdir(curdir)
+    """
+    2d) ftverify the  new caldb.indx file
     """
     print '\nFTVerifying '+caldb+'/data/nustar/fpm/index/'+newindx
-    a = subprocess.check_output('ftverify '+caldb+'/data/nustar/fpm/index/'+newindx, shell=True) # returns output of ftverify as a file object
+    a = subprocess.check_output('ftverify '+nucifdir+'/'+newindx, shell=True) # returns output of ftverify as a file object
     print a[a.find('Verification found'):] # print summary of Verification results
     if (a.find('0 warning') and a.find('0 error')) < 0:
         print 'Warning or Error found by ftverify: Stopping'
@@ -71,7 +81,7 @@ def update_clockcor(version, file,
     """
     3) make a link to the new caldb.indx file
     """
-    print 'Making link from '+caldb+'/data/nustar/fpm/index/'+newindx+' to '+caldb+'/data/nustar/fpm/caldb.indx'
+    print 'Making link from '+nucifdir+'/'+newindx+' to '+caldb+'/data/nustar/fpm/caldb.indx'
     os.chdir(caldb+'/data/nustar/fpm')
     stat=subprocess.call(['ln','-nfs','index/'+newindx,'caldb.indx'])
     if stat<>0:
@@ -104,9 +114,48 @@ def update_clockcor(version, file,
 
     os.chdir(curdir)
 
+
+def get_clockcor(nucchtml=
+                                'http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/clockfile.php'):
+    """
+    Gets list of all the nustar clock corrections listed on nucchtml,
+    returns a dictionary ordered by most recent [0] to oldest [-1] clock correction file
+    :param nucchtml: URL where nustar clock corrections are listed
+    :return:
+    """
+    import requests
+    from bs4 import BeautifulSoup
+
+    cchtml = requests.get(nucchtml)
+    ccsoup = BeautifulSoup(cchtml.text,'lxml')
+    li = ccsoup.find_all('li')
+    nuccfile = []
+    nuccvalidity = []
+    for l in li:
+        if 'nuCclock' in l.text:
+            nuccfile.append(l.text.split('(')[0].strip())
+            nuccvalidity.append(l.text.split('(valid up to')[1].strip().replace(')','').replace('-',''))
+    nucc = {'clock correction file':nuccfile, 'Valid through':nuccvalidity}
+    return nucc
+
+def check_clockcor_version(ClockCorFile):
+    """
+    for the specified clockcorversion and clockcorfile check to see that the the clockcorfile is in the CALDB,
+    and in the latest caldb.indx file
+    :param ClockCorVersion:
+    :param ClockCorFile:
+    :return:
+    """
+
+
 if __name__ == "__main__":
     caldb = '/web_chroot/FTP/caldb' # appropriate for running as caldbmgr on heasarcdev
-    update_clockcor('20151008', 'nuCclock20100101v052.fits', caldb=caldb)
+    # nucc = nustar_get_clockcor()
+    # nucckeys = nucc.keys()
+    # for i in range(len(nucc[nucckeys[0]])):
+    #     print nucc[nucckeys[0]][i], nucc[nucckeys[1]][i]
+    update_clockcor('20160731','nuCclock20100101v060.fits', caldb=caldb)
+    #update_clockcor('20151008', 'nuCclock20100101v052.fits', caldb=caldb)
     #update_clockcor('20150904', 'nuCclock20100101v051.fits', caldb=caldb)
     #update_clockcor('20150114', 'nuCclock20100101v043.fits', caldb='/fuse/caldb_staging/data/nustar/versions/20150114')
     #update_clockcor('20150114','nuCclock20100101v043.fits',caldb='/Volumes/USRA16/caldb')
