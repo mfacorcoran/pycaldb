@@ -115,8 +115,7 @@ def update_clockcor(version, file,
     os.chdir(curdir)
 
 
-def get_clockcor(nucchtml=
-                                'http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/clockfile.php'):
+def get_clockcor(nucchtml='http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/clockfile.php'):
     """
     Gets list of all the nustar clock corrections listed on nucchtml,
     returns a dictionary ordered by most recent [0] to oldest [-1] clock correction file
