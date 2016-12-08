@@ -326,7 +326,7 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
     generate a tar file of previous caldb versions to install locally
 
     so to do this we want to
-        a) access the caldbinfo file for a specified version
+        a) access the caldb.indx file for a specified version
         b) read the file, get the list of all the good files for that version
         c) create the tar file for the goodfiles (handle case of remote or local caldb)
 
@@ -400,7 +400,7 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
             tar.add(c, "data/{0}/{1}/{2}".format(tel, instr, a))
         if os.path.isfile("{0}/caldb.indx".format(tardir)):
             print "Removing {0}/caldb.indx".format(tardir)
-            os.remove("caldb.indx".format(tardir))
+            os.remove("{0}/caldb.indx".format(tardir))
         try:
             os.symlink("index/caldb.indx{0}".format(ver), "caldb.indx")
         except OSError, errmsg:
@@ -451,7 +451,6 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
             except Exception, errmsg:
                 print "Error adding {0}".format(goodfile)
                 print errmsg
- 
 
     tar.close()
     os.chdir(cwd)
