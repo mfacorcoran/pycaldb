@@ -340,7 +340,7 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
     import tarfile
     from ftplib import FTP
     import shutil
-
+    # TODO: allow selection of one or more subdirectories to tar; useful for clockcor
     #cif = get_cif(telescop, instrume)
 
     tel=telescop.strip()
