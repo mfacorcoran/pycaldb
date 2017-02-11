@@ -254,8 +254,6 @@ def ck_calfile_presence(filename,telescope,instrument, caldb = 'http://heasarc.g
     return
 
 
-
-
 def get_calqual(cif,file):
     """
     for a cif hdulist structure (as returned, for example, by get_cif(), or from cif=pyfits.open(PATH_TO_CIF))
@@ -526,9 +524,9 @@ def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
 
 
 if __name__ == "__main__":
-    create_caldb_tar('asca','sis','.060711', tardir='/Users/corcoran/Desktop/tmp/caltartest',
-                     caldbdirs=['data/asca/sis/cpf/94nov9'],
-                     tarName='goodfiles_asca_sis_94nov9.tar.gz')
+    create_caldb_tar('nustar','fpm','20161021', tardir='/Users/corcoran/Desktop/tmp/caltartest',
+                     tarName='goodfiles_nustar_fpm_94nov9.tar.gz',
+                     caldb= '/caldb')
     #create_caldb_tar('swift', 'xrt', '20160609 ', tardir='/FTP/caldb/staging/tmp', caldb='/FTP/caldb')
     #test_pycaldb(0)
     # dummy  command
