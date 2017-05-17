@@ -1,0 +1,39 @@
+{% extends "missioncif_template.html" %}
+{% block ciftable -%}
+
+<table bgcolor="#ccccff" dir="ltr" width="100%" align="center" frame="border" cellpadding="5" border="1" summary="{{telescope}} {{instrument}} calibration data effective {{version}}">
+    <thead>
+    <tr border="1">
+        <th>Telescope</th>
+        <th>Instrument</th>
+        <th>DETNAM</th>
+        <th>FILTER</th>
+        <th>Filename</th>
+        <th>Quality</th>
+        <th>Last Updated</th>
+        <th>CALDB Code</th>
+        <th>Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+
+        {% for ind in cifdf.index %}
+        <tr>
+                <td>{{cifdf.iloc[ind].TELESCOP.strip()}}</td>
+                <td>{{cifdf.iloc[ind].INSTRUME.strip()}}</td>
+                <td>{{cifdf.iloc[ind] | set_detnam}}</td>
+                <td>{{cifdf.iloc[ind].FILTER.strip()}}</td>
+
+                <td><a href="{{'{0}/{1}/{2}'.format("/FTP/caldb",cifdf.iloc[ind].CAL_DIR.strip(),cifdf.iloc[ind].CAL_FILE.strip())}}">{{cifdf.iloc[ind].CAL_FILE}}</a></td>
+                <td>{{cifdf.iloc[ind].CAL_QUAL}}</td>
+                <td>{{cifdf.iloc[ind].CAL_DATE}}</td>
+                <td>{{cifdf.iloc[ind].CAL_CNAM}}</td>
+                <td>{{cifdf.iloc[ind].CAL_DESC}}</td>
+        </tr>
+        {% endfor %}
+    {%- endblock %}
+
+</tbody>
+</table>
+

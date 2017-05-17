@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<title> {{telescope}} {{instrument}} Calibration Files: {{version}} </title>
+<meta http-equiv="Content-Type" content="text/html" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta http-equiv="Window-Target" content="_top" />
+<!-- Do not allow robots -->
+<meta name="ROBOTS" content="NOINDEX, NOFOLLOW" />
+</head>
+
+<!--#include virtual="/docs/calibnav.html"-->
+<!--#include virtual="breadcrumbs.inc"-->
+
+<h1><a href="{{missionurl}}">{{telescope}}</a> {{instrument}} Calibration Files: {{version}}</h1>
+<div>
+<p>
+<a href="{{cifname}}" title="CALDB Index File">The CALDB Index File</a> is a list of good quality files in the CalDB.
+</p>
+<p><p><p>
+<body topmargin="0" onload="init()">
+
+<a name="top"></a>
+
+<br>
+<h1 align="center"><i>Calibration Index File for the {{telescope}}  {{instrument}}</i></h1>
+
+
+   {% block ciftable %}
+   {% endblock %}
+   
+</body>
+</html>
