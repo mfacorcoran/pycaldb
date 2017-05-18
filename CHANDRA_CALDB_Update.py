@@ -1,5 +1,7 @@
-def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc", ChandraCaldbDir = "/pub/arcftp/caldb",
-    ChandraCaldbHost = "cda.harvard.edu"):
+def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
+                         ChandraCaldbDir = "/pub/arcftp/caldb",
+                         ChandraCaldbHost = "cda.harvard.edu",
+                         user="caldbmgr", host="heasarcdev"):
     """
     This function downloads the chandra caldb from the CXC site to the heasarc caldb then untars it and installs 
     the HEASARC version in the HEASARC CALDB
@@ -7,116 +9,87 @@ def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc", Chand
     version should be a string like 
         version = "4.7.2"
     """
-    
-    from astropy.io import fits as pyfits
-    from astropy.time import Time
-    from astropy.table import Table
-    import ftputil
-    import time
+
     import tarfile
     import os
     import shutil
-    
-    print "Connecting to FTP site\n"
-    
-    status = 0
-    
-    host = ftputil.FTPHost(ChandraCaldbHost, "anonymous", "mcorcoran@usra.edu")
-    ChandraCaldbFiles = host.listdir(ChandraCaldbDir) # get list of caldb files
-    
-    ChandraCaldbTarFiles = [f for f in ChandraCaldbFiles if '.tar' in f ] # get list of tar files
-    print"Found these Tarfiles:"
-    print ChandraCaldbTarFiles
-    
-    CaldbMainTar = "caldb_"+version.strip()+"_main.tar.gz"
-    print CaldbMainTar
- 
-    try: 
-        ChandraCaldbTarFiles.remove(CaldbMainTar) # want caldb main file to be first downloaded and untarred
-    except ValueError:
-        print "{0} not in CDA FTP directory {1}; returning".format(CaldbMainTar, ChandraCaldbDir)
-        status = -99
-        host.close()
-        return status
-    ChandraCaldbTarFiles = [CaldbMainTar]+ChandraCaldbTarFiles
-   
-    print "ChandraCaldbTarfiles"
-    print ChandraCaldbTarFiles
-        
-    DownLoadDir=CaldbWorkDir+"/chandra-"+version.strip()
-    if os.path.isdir(DownLoadDir): # if the directory already exists remove it
-        shutil.rmtree(DownLoadDir)
-    os.mkdir(DownLoadDir)
- 
-    print "Changing directory to {0}\n".format(DownLoadDir)
-    os.chdir(DownLoadDir)
+    import requests
+    from bs4 import BeautifulSoup
+    import urllib
 
-    print ("\nFile List:")
-    print (ChandraCaldbTarFiles)
-    for f in ChandraCaldbTarFiles:
-        remotefile = ChandraCaldbDir+"/"+f
-        localfile = DownLoadDir+"/"+f
-        if os.path.exists(f):
-            print ("File {0} already exists; deleting prior to download".format(f))
-            os.remove(f)
-        print "\nGetting file "+f
-        getfile = True
-        inum = 0 # download counter 
-        itrymax = 3 # maximum number of download attempts
-        while (getfile and inum<itrymax): # download each time; try a max of itrymax times
+    errlist=[]
+    curuser = os.environ['LOGNAME']
+    curhost = os.environ['HOSTNAME']
+    if (curuser<>user) or (host not in curhost ):
+        error = "This function must be run as {0} from {1}; returning".format(user, host)
+        print(error)
+        print("Current user is:{0}  Current host is: {1}".format(curuser, curhost))
+        errlist.append(error)
+        return errlist
+
+    # get the urls of the files to be downloaded from the FULL caldb installation table
+    req = requests.get('http://cxc.harvard.edu/ciao/download/caldb.html')
+    soup = BeautifulSoup(req.text, 'lxml')
+    tab = soup.find_all('table')[0] # first table on this page is the FULL install table
+    rows = tab.find_all('tr')
+    files_to_download=[]
+    for r in rows[1:]: # exclude first row since it's the header
+        f = r.find_all('td')[1].a.get('href')
+        files_to_download.append(f)
+    print('Found these caldb files to download from CXC')
+    for f in files_to_download:
+        print(f)
+    ans = raw_input('Continue (y/N)> ')
+    if ans.strip()[0].lower() <> 'y':
+        print "User cancelled execution; Returning"
+        return
+
+    DownLoadDir=CaldbWorkDir+"/chandra-"+version.strip()
+    if not os.path.exists(DownLoadDir):
+        os.makedirs(DownLoadDir)
+    filename = [f.strip()[f.strip().rfind('/')+1:] for f in files_to_download] # names of all files in FULL download table from CXC
+
+    # retrieve the files to the download directory using wget
+    os.chdir(DownLoadDir)
+    for f in files_to_download:
+        cmd = 'wget {0}'.format(f)
+        print cmd
+        status = os.system(cmd)
+        if status <> 0:
+            ans = raw_input('Problem with wget; Continue (y/N)> ')
+            if ans.strip()[0].lower() <> 'y':
+                print "User cancelled execution; Returning"
+                return
+    #
+    # untar the tar files and delete the tar file after untarring
+    #
+    os.chdir(DownLoadDir)
+    for t in filename:
+        if '.tar' in t:
+            print "Untarring {0}".format(t)
+            tarf = tarfile.open(t)
             try:
-                getfile=False
-                #host.download(remotefile,localfile,mode='b')
-                host.download(remotefile,localfile)
-            except IOError:
-                print "IOError on download of file {0}".format(remotefile)
-                getfile = True
-                inum =+ 1
-            if inum >= itrymax: # file did not download so return with error
+                tarf.extractall()
+            except:
+                print "ERROR UNTARRING {0}; returning".format(t)
                 status = -99
-                print "Could not retrieve file {0} in {1} attempts; returning".format(f, itrymax)
-                host.close()
                 return status
-            else:
-                #
-                # once file downloaded, then untar it and delete the tar file
-                #
-                print "Untarring {0}".format(f)
-                tarf = tarfile.open(f)
-                try:
-                    tarf.extractall()
-                except:
-                    print "ERROR UNTARRING {0}; returning".format(localfile)
-                    status = -99
-                    return status        
-                print "Deleting tar file {0}".format(f)
-                os.remove(f)
+            print "Deleting tar file {0}".format(t)
+            os.remove(t)
     
     #
     # don't forget the manifest and readme files
     #
-    manfile = [f for f in ChandraCaldbFiles if 'MANIFEST' in f]
-    manfile = manfile[0]
-    remotefile = ChandraCaldbDir+"/"+manfile
+    manfile = 'MANIFEST_{0}_main.txt'.format(version.strip())
+    print "Moving {1} into {0}/docs/chandra/manifests{1}".format(DownLoadDir,manfile)
     localfile = DownLoadDir+"/docs/chandra/manifests/"+manfile
-    try:
-        host.download(remotefile, localfile)
-    except IOError:
-        print "\nError retrieving {0}; continuing...".format(manfile)
-    
-    readme = [f for f in ChandraCaldbFiles if 'README' in f]
-    readme = readme[0]
-    remotefile = ChandraCaldbDir+"/"+readme
-    localfile = DownLoadDir+"/docs/chandra/"+readme
-    try:
-        host.download(remotefile, localfile)
-    except IOError:
-        print "\nError retrieving {0}; continuing...".format(manfile)
+    shutil.move("{0}/{1}".format(DownLoadDir,manfile), "{0}/docs/chandra/manifests/{1}".format(DownLoadDir,manfile))
 
+    readme = "README_caldb{0}.txt".format(version.strip())
+    print "Moving {1} into {0}/docs/chandra/{1}".format(DownLoadDir,readme)
+    shutil.move("{0}/{1}".format(DownLoadDir,readme), "{0}/docs/chandra/{1}".format(DownLoadDir,readme))
     
     os.chdir(CaldbWorkDir)
-    
-    host.close()
     
     #
     # move to public FTP side

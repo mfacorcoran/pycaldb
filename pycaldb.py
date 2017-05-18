@@ -3,38 +3,300 @@ import datetime
 import numpy as np
 from astropy.time import Time
 from astropy.io import fits as pyfits
+from astropy.table import Table
 import sys
 import urllib2
 import glob
+import jinja2
 
-def get_cif(telescope,instrument, cif=''):
+def read_update_notice(telescope,updatedate,notice_dir = '/Users/corcoran/Desktop/caldb_updates'):
+    """reads the update notice
+    
+    reads the update notification e-mail text file and returns a dictionary of telescope, instrument, 
+    and list of files for the update.  See
+    
+     "Automated Delivery of Calibration Data to the CALDB" 
+     (https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/docs/memos/cal_gen_2003_001/cal_gen_2003_001.html)
+     for specification on the format of the update notification e-mail
+    
+    :param telesope: caldb telescope name
+    :param updatedate: date of update in YYYYMMDD format as specified in the subject of the e-mail; 
+    not to be confused with the update VERSION, also in YYYYMMDD format.  The update VERSION gives the version number
+    of the individual caldb.indx file describing the index, for example the string 20150304 in caldb.indx20150304
+    :param notice_dir: directory where the notification e-mail is located
+    :return: update_dict, a dictionary of instruments and files for the specified update
     """
+    update_email = '{0}/caldb_update_{1}_{2}.txt'.format(notice_dir,telescope, updatedate)
+    update_dict = dict()
+    update_dict[telescope] = dict()
+    update_dict[telescope][updatedate]=dict()
+    with open(update_email, mode='r') as f:
+        updatelist = f.readlines()
+    # get indices of instrument lines
+    instindex=[]
+    instrument=[]
+    # identify instrument block
+    for i,l in enumerate(updatelist):
+        if 'instrument=' in l.lower():
+            instindex.append(i)
+            inst = l.strip().lower().split('=')[1]
+            instrument.append(inst)
+    # number of instrument blocks found
+    numinst = len(instindex)
+    if numinst < 1:
+        print "Missing instrument block; returning"
+        update_dict = -1
+        return update_dict
+    # at least 1 instrument block exists
+    instindex.append(len(updatelist))
+    for i in range(numinst):
+        instblock = updatelist[instindex[i]:instindex[i+1]]
+        cif = [x.strip().lower().split('caldbindexfile=')[1] for x in instblock if 'caldbindexfile=' in x]
+        cif = cif[0].strip()
+        if len(cif) == 0:
+            print 'Calibration index file not found for instrument {0}; returning'.format(instrument[i])
+            update_dict = -1
+            return update_dict
+        # find start and end of newfile block
+        fileindx = [x for x, y in enumerate(instblock) if 'newfile' in y]
+        filelist = [x.strip() for x in instblock[fileindx[0]+1:fileindx[1]]]
+        # prepend name of cif to file list
+        filelist.insert(0,cif)
+        try:
+            update_dict[telescope][updatedate][instrument[i]]=filelist
+        except Exception, errmsg:
+            print errmsg
+            print instrument, filelist
+    return update_dict
+
+def mk_cifname(telescope, instrument, version="", caldb="http://heasarc.gsfc.nasa.gov/FTP/caldb"):
+    """Creates fully specified calibration index file name
+    
+    Creates fully specified calibration index file name given telescope, instrument, and
+    (optionally) caldb index file version (caldb.indx20170405) and caldb top level directory path or url
+    
+    :param telescope:  CALDB name of telescope 
+    :param instrument: CALDB name of the instrument on telescope
+    :param version: version of the index file to use (optional; for example caldb.indx20170405)
+    :param caldb: caldb top level directory path or url
+    :return: name of cif (with full directory path or full URL)
+    """
+    caldb      = caldb.strip()
+    telescope  = telescope.strip().lower()
+    instrument = instrument.strip().lower()
+    version    = version.strip()
+
+    if not version:
+        cifname = "{0}/data/{1}/{2}/caldb.indx".format(caldb,telescope, instrument)
+    else:
+        cifname = "{0}/data/{1}/{2}/index/{3}".format(caldb,telescope, instrument, version)
+    return cifname
+
+def get_cif(telescope,instrument, version='', caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'):
+    """ convert caldb.indx file to FITS HDU
+    
     reads the caldb.indx file for a given telescope and instrument, for either a local caldb installation
     or a remote installation access via http or ftp
-    : param telescope = telescope specification for cif
-    : param instrument = instrument specification for telescope
-    : param cif =  allows user to request a specific cif
-            (cif = "http://heasarc.gsfc.nasa.gov/FTP/caldb/data/nustar/fpm/index/caldb.indx20160502")
-    : return
+    
+    :param telescope: telescope specification for cif
+    :param instrument: instrument specification for telescope
+    :param version: version of cif to use (for example caldb.indx20160502)
+    :return: returns a FITS hdu representation of the caldb.indx file
     """
-    try:
-        caldb=os.environ['CALDB']
-    except KeyError:
-        sys.exit("CALDB not defined; Returning")
-    if not cif: # if cif not specified get latest cif from telescope and instrument
-        cif=caldb+"/data/"+telescope.strip().lower()+"/"+instrument.strip().lower()+"/caldb.indx"
+    cif = mk_cifname(telescope, instrument, version=version, caldb=caldb)
     try:
         hdulist = pyfits.open(cif)
-    except:
-        hdulist=0
+    except Exception, errmsg:
+        sys.exit('Could not open file {0} ({1})'.format(cif,errmsg))
     return hdulist
 
-def quizcif(telescope, instrument, cal_cnam, detnam='',cal_cbd=['','','','','','','','',''],
-filter="none", cal_vsd="today", cal_vst="now", cal_qual=0, caldb='ftp://heasarc.gsfc.nasa.gov/caldb', caldbver=''):
+def cif_to_df(telescope, instrument, version='', caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'):
+    """ convert caldb.indx file to a dataframe
+    
+    Creates a pandas dataframe from a calibration index file (cif) for a given mission/instrument
+    
+    :param telescope: caldb standard telescope name
+    :param instrument: caldb standard instrument name for that telescope
+    :param cif: (optional) specific cif to retrieve
+    :return: pandas dataframe containing the data from the 1st extension in the CIF
     """
+    cif = get_cif(telescope, instrument, version=version, caldb=caldb)
+    try:
+        cifdf = Table(cif[1].data).to_pandas()
+    except TypeError, errmsg:
+        sys.exit("Error accessing CIF {0}; exiting".format(cif))
+    return cifdf
+
+def cif_diff(telescope, instrument, newcif, oldcif,caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'):
+    """get differences between new and old versions of a caldb.indx file
+    
+    cif_diff compares a new caldb.indx file to an older one and returns 
+        - names of files in newcif which are not in the old cif
+        - 
+    
+    :param telescope: caldb telescope name
+    :param instrument: caldb instrument name
+    :param newcif: version of caldb.indx file (for eg, caldb.indx20170405)
+    :param oldcif: version of caldb.indx file to compare against (for eg, caldb.indx20170203)
+    :param caldb: top-level caldb directory (or url)
+    :return: 
+    """
+    # TODO - complete (do we also want to compare the files in the new/old tar files?)
+    try:
+        cifdf = cif_to_df(telescope,instrument,version=newcif,caldb=caldb)
+    except:
+        print("Error opening {0}; returning".format(newcif))
+        return
+    try:
+        cifdf_old = cif_to_df(telescope,instrument,version=oldcif,caldb=caldb)
+    except:
+        print "Error opening {0}; returning".format(newcif)
+        return
+    files    = set(cifdf.CAL_DIR.str.strip() + '/' + cifdf.CAL_FILE.str.strip())
+    oldfiles = set(cifdf_old.CAL_DIR.str.strip() + '/' + cifdf_old.CAL_FILE.str.strip())
+    missing = [x for x in files if x not in oldfiles]
+    deleted = [x for x in oldfiles if x not in files]
+    diff_dict=dict()
+    diff_dict['MISSING']=missing
+    diff_dict['DELETED']=deleted
+    diff_dict['CIF'] = mk_cifname(telescope, instrument, version=newcif, caldb=caldb)
+    diff_dict['OLD_CIF'] = mk_cifname(telescope, instrument, version=oldcif, caldb=caldb)
+    return diff_dict
+
+def cifstats(telescope, instrument, version='', caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'):
+    """ get summary statistics for a caldb.indx file
+    
+    returns some interesting statistics for the specified CIF:
+    number of Unique filenames
+    number of Unique files (a file with the same name in 2 separate directories is counted as 2 different files; 
+    hopefully this doean't happen)
+    number of files with quality = 0
+    number of files with quality = 5
+    number of files with other quality values
+    number of uniques CNAM values
+    
+    :param telescope: caldb TELESCOPE value
+    :param instrument: caldb Instrument value
+    :param version: caldb.indx version (eg, caldb.indx20170405)
+    :param caldb: caldb top-level directory (or url)
+    :return: dictionary of summary statistics for the caldb.indx file
+    """
+    cifdf = cif_to_df(telescope, instrument, version=version, caldb=caldb)
+    cifstat= dict()
+    cifstat['Unique_filenames'] = len(set(cifdf.CAL_FILE))
+    calfiles = []
+    for cdir, cfile in zip(cifdf.CAL_DIR,cifdf.CAL_FILE):
+        calfiles.append("{0}/{1}".format(cdir, cfile))
+    cifstat['Unique_files']=len(set(calfiles))
+    cifstat['Number_files_qual_0'] = len(set(cifdf[cifdf.CAL_QUAL == 0].CAL_FILE))
+    cifstat['Number_files_qual_5'] = len(set(cifdf[cifdf.CAL_QUAL == 5].CAL_FILE))
+    cifstat['Number_of_files_other_quality'] = cifstat['Unique_filenames'] - (cifstat['Number_files_qual_0']+cifstat['Number_files_qual_5'])
+    cifstat['Number_unique_CNAMS']=len(set(cifdf.CAL_CNAM))
+    return cifstat
+
+def make_missioncif_page(telescope,instrument,version, missionurl,
+                         outdir="/software/github/heasarc/pycaldb/html/cifs",
+                         templatedir = "/software/github/heasarc/pycaldb/templates",cal_qual = 5,clobber=False):
+    """ Make an html-formatted caldb.indx file
+    
+    Creates an html table from a calibration index file (CIF) the specified mission, instrument & version
+    for all the "good" (CAL_QUAL = 0) entries
+    
+    :param telescope: caldb standard telescope name
+    :param mission:  caldb standard mission name
+    :param version: version of the cif (should be in YYYYMMDD format except for chandra in form of 4.7.3)
+    :param outdir: output directory to hold the html version of the cif
+    :param templatedir: directory where the jinja templates are located
+    :param clobber: True to overwrite an existing html cif file
+    :return: status (0 if no errors)
+    """
+    status = 0
+    try:
+        caldb = os.environ['CALDB']
+    except KeyError:
+        print "CALDB environment variable not defined; returning"
+        return
+    # if cifname not specified use the current cif; otherwise use the specified cif
+    #
+    # chandra has an overall caldb version - 4.7.3 for eg
+    # but each instrument has an individual caldb name caldbN0440.indx for acis for 4.7.3
+    # so we need to account for that
+    if telescope.strip().lower() == 'chandra':
+        ciffile = raw_input("Enter name of CIF for {0} {1} for version {2} > ".format(telescope, instrument, version))
+        cifname = "{0}/data/{1}/{2}/index/{3}".format(caldb,telescope.strip().lower(), instrument.strip().lower(), ciffile.strip())
+    else:
+        cifname = "{0}/data/{1}/{2}/index/caldb.indx{3}".format(caldb,telescope.strip().lower(), instrument.strip().lower(),version)
+    cifdf = cif_to_df(telescope.strip().lower(),instrument.strip().lower(), cif=cifname)
+    if not 'FILTER' in cifdf.columns:
+        print ''
+        ans = raw_input('CIF missing FILTER values; set FILTER to "INDEF" ([y]/n) > ')
+        if ans.strip().lower() <> 'n':
+            cifdf['FILTER'] = "INDEF"
+    goodcifdf = cifdf[cifdf['CAL_QUAL'] <> cal_qual]
+    goodcifdf.reset_index(inplace=True) # resets the index to be 0 -> len(goodcifdf)
+    # Render html file
+    try:
+        templateLoader = jinja2.FileSystemLoader(searchpath=templatedir)
+    except Exception, errmsg:
+        print ('Could not load templates in {0}; Exiting ({1})'.format(templatedir, errmsg))
+        status = -1
+        return status
+    templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True,)
+    # define filter for DETNAM since DETNAM not included in chandra cifs
+    # see http://jinja.pocoo.org/docs/2.9/api/#writing-filters
+    def set_detnam (row):
+        try:
+            detnam = row.DETNAM
+        except AttributeError:
+            detnam = 'INDEF'
+        return detnam
+    templateEnv.filters['set_detnam']  = set_detnam
+    template = templateEnv.get_template('missioncif_table_template.html')
+    output_html = template.render(cifdf = goodcifdf, telescope=telescope,
+                                  instrument=instrument, version=version,
+                                  cifname=cifname, missionurl=missionurl)
+    outname = "{0}_{1}_{2}_{3}.html".format("cif",telescope.strip().lower(),instrument.strip().lower(),version.strip().lower())
+    fname = '{0}/{1}'.format(outdir, outname)
+    if os.path.isfile(fname):
+        if not clobber:
+            sys.exit("File {0} exists, and clobber = False; not overwritten".format(fname))
+    try:
+        with open(fname, mode='w') as fout:
+            fout.write(output_html)
+    except IOError, errmsg:
+        print('Could not write {0}; Exiting ({1})'.format(fname, errmsg))
+        status = -1
+        return status
+    print "Wrote {0}".format(fname)
+    return status
+
+
+    print "Wrote {0}/{1}".format(outdir, outname)
+    return
+
+
+def quizcif(telescope, instrument, cal_cnam, detnam='',cal_cbd=['','','','','','','','',''],
+            filter="none", cal_vsd="today", cal_vst="now", cal_qual=0,
+            caldb='ftp://heasarc.gsfc.nasa.gov/caldb', caldbver=''):
+
+    """ Function to retrieve calibration files matching specified constraints (UNDER DEVELOPMENT)
+    
     quizcif is a python replacement for quzcif
     Returns files from the caldb.indx file for a given telescope, instrument, which matches the cal_cnam, filter
     calibration boundary etc
+
+    :param telescope: name of telescope/mission
+    :param instrument: name of instrument on telescope
+    :param cal_cnam: caldb codename of files
+    :param detnam: detector name (if needed)
+    :param cal_cbd: calibration file boundary values
+    :param filter: Name of filter for instrument (if needed)
+    :param cal_vsd: Validity start date
+    :param cal_vst: Validity start time
+    :param cal_qual: Quality flag for files 
+    :param caldb: Main caldb directory
+    :param caldbver: Version of calibration file (usually of form YYYYMMDD)
+    :return: 
     """
     hdulist=get_cif(telescope,instrument, caldb=caldb)
     if hdulist==0:
@@ -107,33 +369,42 @@ filter="none", cal_vsd="today", cal_vst="now", cal_qual=0, caldb='ftp://heasarc.
     print param
     
 def get_cbds(telescope, instrument, caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'):
-    """
-    access the cal_cbd string (9 values of 72 characters each), extract the parameter name, then return a python dictionary
-    with each parameter name as the key and the minimum and maximum values allowable as the key values
-    (if an equality, then minval=maxval as expected)
-    cbd={'parname1':[min,max], 'parname2':[min,max],...}
-    to test for the existence of a parname:
-    cbd.has_key('parname2') (evaluates to true if parname2 is a key in the dictionary)
+    """ Get calibration boundaries
+    
+    Accesses the calibration boundary values for a specified telescope/instrument
+    
+    :param telescope: Name of Telescope/Mission (nustar)
+    :param instrument: Name of Instrument (fpm)
+    :param caldb: location of caldb data
+    :return: calibration boundary values and table of CIF data
     """
     #print cal_cbd
     #urllib.urlcleanup() # this apparently removes the file 
     hdulist=get_cif(telescope, instrument, caldb=caldb)
     tbdata = hdulist[1].data
     cbds=tbdata.field('CAL_CBD')
-    nel=len(cbds)
+    #nel=len(cbds)
     # return array of boundaries
     cbds=cbds.split() # split the cbd values on whitespace
     print "Splitting cbds"
     return (cbds, tbdata)
 
 def cmp_cbd(cbd, pname, pval, punit="", chatter=0):
-    """ 
+    """ compare calibration boundary values
+    
     for specfied param name (pname), parameter value (pval), an optional unit string, and a caldb boundary
     list from a cif of form PARAM(VAL-RANGE)UNIT, returns true if pname = cbd parameter name AND pval is matches the 
     cbd parameter value or range, AND (optionally) the unit strings match
     
     Currently, it simply checks for a match in the parameter name for one parameter - need to add pval check
     and need to add capability to include more than one pname (i.e. for AND or OR conditions)
+
+    :param cbd: list of calibration boundaries (from get_cbds, for example)
+    :param pname: name of parameter to test
+    :param pval: value of named parameter to test
+    :param punit: physical unit (optional)
+    :param chatter: level of verbosity
+    :return: check value (True if parameter value falls within one of the tabulated boundaries)
     """
     a=parse_cbd(cbd)
     if pname.upper()==a[0].upper(): # param names match
@@ -153,9 +424,14 @@ def cmp_cbd(cbd, pname, pval, punit="", chatter=0):
     return check
 
 def parse_cbd(bound, chatter=0):
-    """
+    """ parse a boundary value
+    
     for a boundary string of the form PARAM(VALUE)UNIT, returns the parameter name, min and max allowed value,
     (and unit string if any) as a python list (param, minval, maxval, unit)
+
+    :param bound: caldb boundary value string
+    :param chatter: level of verbosity
+    :return: list of (param, minval, maxval, unit)
     """
     #print "parse_cbd: Bound = %s" % bound
     test=np.asarray(bound.split("(")) # split the string at the "(" into a list; use numpy.asarray to convert to an array
@@ -194,10 +470,16 @@ def parse_cbd(bound, chatter=0):
     return cbd #returns python list (string, number or string, number or string, string)
 
 def ck_file_existence(cif,caldb="/FTP/caldb", quiet=True):
-    """
+    """Check that file in caldb.indx exists in CALDB
+    
     for a cif hdulist structure (as returned, for example, by get_cif(), or from cif=pyfits.open(PATH_TO_CIF))
     retrieves the list of files from the cif and their corresponding directories
     then checks the specified caldb for them
+
+    :param cif: HDU representation of the CALDB index file
+    :param caldb: location of CALDB data
+    :param quiet: if True suppress status messages
+    :return: status flag and list of missing files
     """
     cifdata=cif[1].data
     calfile=cifdata.field('cal_file')
@@ -220,22 +502,36 @@ def ck_file_existence(cif,caldb="/FTP/caldb", quiet=True):
             status = -99
             missing.append(f)
     print "Checking Complete"
-    return missing
+    return status, missing
 
-def ck_calfile_presence(filename,telescope,instrument, caldb = 'http://heasarc.gsfc.nasa.gov/FTP/caldb',
-                        cif=''):
-    """
-    for a specified filename, searches the specified cif for the presence of the file, then
+def ck_calfile_incif(caldir, filename,telescope,instrument, caldb = 'http://heasarc.gsfc.nasa.gov/FTP/caldb',
+                        version=''):
+    """ verifies that a specified file is actually in the caldb.indx file
+    
+    for a specified filename, checks that this file exists in the specified calibration index file (cif),
+    then checks that the CALDB keyword values are consistent between the cif and the actual file 
     determines if the file exists in the caldb
-    :param filename:
-    :param cif:
-    :return:
+    
+    usage:
+    ck_calfile_incif('data/hitomi/sxi/cpf/background','ah_sxi_nxbpnt_20140101v001.pha',
+    caldb = 'http://heasarc.gsfc.nasa.gov/FTP/caldb',cif='caldb.indx20170405')
+    
+    :param caldir: path to file in the caldb relative to caldb top level directory/url
+    :param filename: specified file 
+    :param telescope: Name of TELESCOP
+    :param instrument: Name of Instrumentn
+    :param caldb: caldb top level directory/url
+    :param version: version of cif to use (for example caldb.indx20170405); if blank use caldb.indx
+    :return: 
     """
-    if not cif:
-        cif = caldb + '/data/' + telescope + '/' + instrument
-        cifhdu = get_cif(cif=cif)
+    # get telescope and instrument from the caldir
+    telescope = caldir.split('/')[1]
+    instrument = caldir.split('/')[2]
+
+    if not version:
+        cifhdu = get_cif(telescope, instrument)
     else:
-        ciuhdy = get_cif(cif=cif)
+        cif = get_cif(telescope, instrument, version=version)
     cfiles = cifhdu[1].data['CAL_FILE']
     cal_xno = cifhdu[1].data['CAL_XNO']
     cal_cnam = cifhdu[1].data['CAL_CNAM']
@@ -255,23 +551,29 @@ def ck_calfile_presence(filename,telescope,instrument, caldb = 'http://heasarc.g
 
 
 def get_calqual(cif,file):
-    """
-    for a cif hdulist structure (as returned, for example, by get_cif(), or from cif=pyfits.open(PATH_TO_CIF))
-    retrieves the CAL_QUAL for the extensions in the file
+    """ Get Quality Flag for caldb file
+    
+    For a cif hdulist structure (as returned, for example, by get_cif(), or from cif=pyfits.open(PATH_TO_CIF))
+    and for a specified file name, retrieves the CAL_QUAL for all the extensions in the file
+
+    :param cif: HDU representation of the CALDB index 
+    :param file: name of file for which quality flag is returned
+    :return: list of extensions and caldb quality values for those extensions
     """
     data=cif[1].data
     calfiles = data['CAL_FILE']
     caldir = data['CAL_DIR']
     calqual = data['CAL_QUAL']
     calxno = data['CAL_XNO']
-    cf=[]
-    for c in calfiles:
-        cf.append(c.strip()) # remove any whitespaces in the cal file name
+    #cf=[]
+    #for c in calfiles:
+    #    cf.append(c.strip()) # remove any whitespaces in the cal file name
+    cf = [x.strip() for x in calfiles]
     ind = np.where(np.asarray(cf)==file.strip())[0]
     if len(ind) == 0:
         print "File {0} not found in CIF; returning".format(file)
         xno=0
-        cqual=5
+        cqual= -99
         return xno,cqual
     else:
         print "File = {0}".format(file)
@@ -284,11 +586,14 @@ def get_calqual(cif,file):
 
 
 def get_calpars (toolname, package='heasoft'):
-    """
-    for the given toolname (like xrtmkarf), this returns a dictionary of the parameters
+    """ parameters that accept the CALDB string as input
+    
+    For the given toolname (like xrtmkarf), this returns a dictionary of the parameters
     which except the string CALDB
-    :param toolname:
-    :return:
+    
+    :param toolname: name of HEASoft tool/program
+    :param package: Name of software package
+    :return: dictionary of tools and the parameter names that accept CALDB as input
     """
     envname = 'LHEASOFT'
     calpars = {} # define calpars dictionary
@@ -312,11 +617,12 @@ def get_calpars (toolname, package='heasoft'):
         calpars[toolname]=parnames
     return calpars
 
-def create_caldb_tar(telescop, instrume, version, tarName = '',
-                     tardir = '', calQual = 0,
+def create_caldb_tar(telescop, instrume, version, tarName = "",
+                     tardir = "", calQual = 0,
                      caldbdirs=['bcf','cpf'],
                      caldb = "http://heasarc.gsfc.nasa.gov/FTP/caldb"):
-    """
+    """ Create CALDB tar file
+    
     creates a tar file of "good" files for given mission/instrument
     from the HEASARC caldb.
 
@@ -331,26 +637,27 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
 
     :param mission: name of the mission in the caldb (str) ex: nustar
     :param instrume: name of the mission's instrument (str) ex: fpma
-    :param version: version of caldb.indx file to use to create tar file
+    :param version: version of caldb.indx file to use to create tar file (for example caldb.indx20170504)
     :param tarName: name of tarfile to be created - will be constructed if not specified
     :param tardir: name of output directory for tarfile; if not specified use CWD
-    :param caldbdirs: subdirectories of $CALDB/data/<telescop>/<instrume> to tar (the index directory is always retrieved
-    :return:
+    :param caldbdirs: subdirectories of $CALDB/data/<telescop>/<instrume> to tar 
+        (the index directory is always retrieved)
+    :param caldb: top-level caldb directory or url
+    :return: status (0 if no errors)
     """
     import tarfile
     from ftplib import FTP
     import shutil
     # TODO: allow selection of one or more subdirectories to tar; useful for clockcor
     #cif = get_cif(telescop, instrume)
-
     tel=telescop.strip()
     instr = instrume.strip()
-    ver = version.strip()
-
+    #ver = version.strip()
+    # ver should be of the form 20170503
+    ver = version.split('caldb.indx')[1].strip()
     cwd = os.getcwd()
-
+    status = 0
     calQual = int(calQual) # make sure this is an integer
-
     if not tardir:
         tardir = os.getcwd()
     else:
@@ -359,6 +666,7 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
         except OSError:
             print "Could not change directory to {0}".format(tardir)
             print "returning"
+            status = -1
             return
         print 'Current directory = {0}'.format(os.getcwd())
 
@@ -366,13 +674,12 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
     try:
         hdu = pyfits.open(cif)
     except Exception, errmsg:
-        sys.exit("Could not open {0}; exiting".format(cif))
-
+        print("Could not open {0}; returning".format(cif))
+        status = -1
+        return status
     if not tarName: # if tarname not specified, use "standard" naming
         tarName = "{3}/goodfiles_{0}_{1}_{2}.tar.gz".format(tel, instr, ver, tardir)
-
     tar = tarfile.open(tarName, "w:gz")
-
     if (("http://" in caldb) or ("ftp://" in caldb)): # if remote, download the index file directory
          tindname = "{0}/index.tar".format(tardir)
          tindex = open(tindname, 'w')
@@ -386,6 +693,7 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
              t.extractall()
          except Exception, errmsg:
              print "Problem extracting files from index.tar:{0}".format(errmsg)
+             status = -1
          cifs = glob.glob('index/caldb*')
          arcname = ['index/' + c[c.rfind('/') + 1:] for c in cifs]
          for c, a in zip(cifs, arcname):
@@ -399,7 +707,8 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
              print "Could not create symbolic line to caldb.indx"
              print "Error message was: {0}".format(emsg)
              print "returning"
-             return
+             status = -1
+             return status
          tar.add("caldb.indx", "data/{0}/{1}/caldb.indx".format(tel, instr))
          shutil.rmtree(tardir+'/index') # remove local index directory
          os.remove(tardir+'/index.tar')
@@ -418,16 +727,14 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
             lcif = "{0}/caldb.indx".format(tardir)
             print errmsg
             print "Does file {0} exist? {1}".format(lcif, os.path.isfile(lcif))
+            status = -1
         tar.add("caldb.indx","data/{0}/{1}/caldb.indx".format(tel, instr))
-        
     os.remove("{0}/caldb.indx".format(tardir))
-    
     # get calfiles
     ciftab = hdu[1].data
     cqual = ciftab['CAL_QUAL']
     cfiles = ciftab['CAL_FILE']
     cdir = ciftab['CAL_DIR']
-
     # get cfile_to_tar, list of unique caldb files to tar based on specified cal quality
     # and create goodfiles array
     cfile_to_tar = []
@@ -435,19 +742,16 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
     goodfiles = []
     for cq, cf, cd in zip(cqual, cfiles, cdir):
         testfile = "{0}/{1}".format(cd,cf)
-        if ((cq == calQual) and (testfile not in cfile_to_tar)):
+        if (cq == calQual) and (testfile not in cfile_to_tar):
             cfile_to_tar.append(testfile)
             cdir_to_tar.append(cd)
             goodfiles.append("{0}".format(testfile))
-
     # now create list of selected goodfiles based on the specified caldbdirs list
     goodfiles_selected = []
     for c in caldbdirs:
         tmp = [x for x in goodfiles if c in x]
         goodfiles_selected.extend(tmp)
     # goodfiles_selected now contains the list of qualtity selected caldb files in the specified subdirectories caldbdirs
-
-
     for goodfile in goodfiles_selected:
         if ("http://" in caldb) or ("ftp://" in caldb): # if remote access, download the file
             # download the goodfile from the heasarc
@@ -464,6 +768,7 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
             except Exception, errmsg:
                 print "Error adding {0}".format(goodfile)
                 print errmsg
+                status = -1
             os.remove(tmp_cfile)
         else: # using locally-mounted caldb
             #tmp_cfile = "{0}/{2}".format(caldb, cd, cf)
@@ -474,10 +779,11 @@ def create_caldb_tar(telescop, instrume, version, tarName = '',
             except Exception, errmsg:
                 print "Error adding {0}".format(goodfile)
                 print errmsg
+                status = -1
 
     tar.close()
     os.chdir(cwd)
-    return
+    return status
 
 def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
     import numpy as np
@@ -522,12 +828,138 @@ def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
     a="Done"
     return a
 
+def sync_caldbweb(DoCopy=False, user='mcorcora', host="heasarcdev", mission='', version=''):
+    """ Syncs the caldb website
+    
+    After editing/updating appropriate html files on the development side (caldbwww), this routine moves 
+    the files to the public side (caldbwwwprod) and also generates the cadlb and heasarc rss feeds
+    
+    The html files that need to be updated are::
+    
+        caldb_wotsnew.html
+        caldb.rss
+        caldb_supported_missions.html
+        the astro-update associated data file (inc/associated_data.html)
+        
+    For nustar updates, you also need to edit these files::
+    
+        release_<VERSION>.txt
+        nustar_caldbhistory.html
+        nustar_caldb.html
+        nustar.rss
+
+    
+    :param mission: mission name (aka TELESCOP)
+    :param version: version of caldb (usually of form YYYYMMDD)
+    :param DoCopy: if False just print the cmds that will be executed when DoCopy = True
+    :return: 
+    """
+    import os
+    mission = mission.lower().strip()
+    errlist=[]
+    curuser = os.environ['LOGNAME']
+    curhost = os.environ['HOSTNAME']
+    if (curuser<>user) or (host not in curhost ):
+        error = "This function must be run as {0} from {1}; returning".format(user, host)
+        print(error)
+        print("Current user is:{0}  Current host is: {1}".format(curuser, curhost))
+        errlist.append(error)
+        return errlist
+    # generate the caldb news item
+    print "# Generating CALDB news item (develop version)"
+    cmd = "~mcorcora/bin/caldbdev_rss2.pl"
+    print cmd
+    if DoCopy:
+        status = os.system(cmd)
+        if status <> 0:
+            errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+    print "# Generating CALDB news item (public version)"
+    cmd = "~mcorcora/bin/caldbprod_rss2.pl"
+    print cmd
+    if DoCopy:
+        status = os.system(cmd)
+        if status <> 0:
+            errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+    # each element of files_to_sync has 3 components:
+    # name of file, start directory, end directory
+    files_to_sync = [
+        ("caldb_wotsnew.html","/www/htdocs/docs/heasarc/caldb","/www.prod/htdocs/docs/heasarc/caldb"),
+        ("caldb_supported_missions.html", "/www/htdocs/docs/heasarc/caldb", "/www.prod/htdocs/docs/heasarc/caldb"),
+        ("caldb.rss", "/www/htdocs/docs/heasarc/caldb", "/www.prod/htdocs/docs/heasarc/caldb"),
+        ("associated_data.html","/www/htdocs/docs/heasarc/astro-update/inc","/www.prod/htdocs/docs/heasarc/astro-update/inc"),
+        ("astro-update.rss","/www/htdocs/docs/heasarc/astro-update","/www.prod/htdocs/docs/heasarc/astro-update")
+    ]
+    if mission == 'nustar':
+        files_to_sync.append(
+            [
+                ("release_{0}.txt".format(version), "/www/htdocs/docs/heasarc/caldb/nustar/docs/","/www.prod/htdocs/docs/heasarc/caldb/nustar/docs/"),
+                ("nustar_caldbhistory.html","/www/htdocs/docs/heasarc/caldb/nustar/docs/","/www.prod/htdocs/docs/heasarc/caldb/nustar/docs/"),
+                ("nustar_caldb.html","/www/htdocs/docs/heasarc/caldb/nustar","/www.prod/htdocs/docs/heasarc/caldb/nustar"),
+                ("cif_nustar_fpm_{0}.html".format(version),"/FTP/caldb/local/software/pro/DATA_DELIVERIES/pro/mission_summaries/work","/www/htdocs/docs/heasarc/caldb/data/nustar/fpm/index"),
+                ("cif_nustar_fpm_{0}.html".format(version), "/FTP/caldb/local/software/pro/DATA_DELIVERIES/pro/mission_summaries/work","/www.prod/htdocs/docs/heasarc/caldb/data/nustar/fpm/index"),
+                ("nustar.rss","/www/htdocs/docs/nustar/news/","/www.prod/htdocs/docs/nustar/news/")
+            ]
+        )
+    print "\n # Syncing website:"
+    for f in files_to_sync:
+        print "# copying {0} from {1} to {2}".format(f[0],f[1],f[1])
+        cmd = "cp {1}/{0} {2}/{0}".format(f[0],f[1],f[2])
+        print "{0}\n".format(cmd)
+        if DoCopy:
+            status = os.system(cmd)
+            if status<>0:
+                errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+    if mission == "nustar":
+        print "# Creating {0} and heasarc newsfeeds (dev version)".format(mission)
+        cmd = "/www/htdocs/docs/rss/nustar_rss2.pl"
+        print("{0}\n".format(cmd))
+        if DoCopy:
+            status = os.system(cmd)
+            if status <> 0:
+                errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+        print "# Creating nustar and heasarc newsfeeds (public version)"
+        cmd = "/www.prod/htdocs/docs/rss/nustar_rss2.pl"
+        print("{0}\n".format(cmd))
+        if DoCopy:
+            status = os.system(cmd)
+            if status <> 0:
+                errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+    # create heasarc news feed from astroupdate
+    print "\n # Creating heasarc newsfeed (dev version)".format(mission)
+    cmd = "/www/htdocs/docs/rss/software_rss2.pl"
+    print("{0}\n".format(cmd))
+    if DoCopy:
+        status = os.system(cmd)
+        if status <> 0:
+            errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+    print "\n #Creating heasarc newsfeed (public version)"
+    cmd = "/www.prod/htdocs/docs/rss/software_rss2.pl"
+    print("{0}\n".format(cmd))
+    if DoCopy:
+        status = os.system(cmd)
+        if status <> 0:
+            errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+    return errlist
+
+def test_makemissioncif(telescope='Swift',instrument='SC', version='20170505',missionurl='http://swift.gsfc.nasa.gov'):
+    make_missioncif_page(telescope, instrument,version, missionurl=missionurl, clobber=True)
+    return
 
 if __name__ == "__main__":
-    create_caldb_tar('nustar','fpm','20161021', tardir='/Users/corcoran/Desktop/tmp/caltartest',
-                     tarName='goodfiles_nustar_fpm_94nov9.tar.gz',
-                     caldb= '/caldb')
+    #create_caldb_tar('nustar','fpm','20161021', tardir='/Users/corcoran/Desktop/tmp/caltartest',
+    #                 tarName='goodfiles_nustar_fpm_94nov9.tar.gz',
+    #                 caldb= '/caldb')
+    # test
     #create_caldb_tar('swift', 'xrt', '20160609 ', tardir='/FTP/caldb/staging/tmp', caldb='/FTP/caldb')
     #test_pycaldb(0)
     # dummy  command
-
+    #test_makemissioncif()
+    #cifdf = cif_to_df('nustar','fpm')
+    # cstats = cifstats('nustar','fpm')
+    # cstatsold = cifstats('nustar','fpm', version='caldb.indx20160606')
+    # for k in cstats.keys():
+    #     print "{0:30s} latest = {1} 20160606 = {2}".format(k, cstats[k],cstatsold[k])
+    ud = read_update_notice('swift', '20081203')
+    for k in ud['swift'].keys():
+        for i in ud['swift'][k].keys():
+            print k, i, ud['swift'][k][i]
