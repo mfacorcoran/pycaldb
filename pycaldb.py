@@ -8,6 +8,7 @@ import sys
 import urllib2
 import glob
 import jinja2
+from heasarc.utils import utils as hu
 
 def read_update_notice(telescope,updatedate,notice_dir = '/Users/corcoran/Desktop/caldb_updates'):
     """reads the update notice
@@ -618,7 +619,7 @@ def get_calpars (toolname, package='heasoft'):
     return calpars
 
 def create_caldb_tar(telescop, instrume, version, tarName = "",
-                     tardir = "", calQual = 0,
+                     tardir = "", exclude_calqual = 5,
                      caldbdirs=['bcf','cpf'],
                      caldb = "http://heasarc.gsfc.nasa.gov/FTP/caldb"):
     """ Create CALDB tar file
@@ -640,6 +641,8 @@ def create_caldb_tar(telescop, instrume, version, tarName = "",
     :param version: version of caldb.indx file to use to create tar file (for example caldb.indx20170504)
     :param tarName: name of tarfile to be created - will be constructed if not specified
     :param tardir: name of output directory for tarfile; if not specified use CWD
+    :param exclude_calqual: quality value to exclude 
+    (some missions like Chandra use cal_qual values from 0 to 4 as acceptable values)
     :param caldbdirs: subdirectories of $CALDB/data/<telescop>/<instrume> to tar 
         (the index directory is always retrieved)
     :param caldb: top-level caldb directory or url
@@ -650,14 +653,14 @@ def create_caldb_tar(telescop, instrume, version, tarName = "",
     import shutil
     # TODO: allow selection of one or more subdirectories to tar; useful for clockcor
     #cif = get_cif(telescop, instrume)
-    tel=telescop.strip()
-    instr = instrume.strip()
-    #ver = version.strip()
+    tel=telescop.strip().lower()
+    instr = instrume.strip().lower()
+    ver = version.strip()
     # ver should be of the form 20170503
-    ver = version.split('caldb.indx')[1].strip()
+    # ver = version.split('caldb.indx')[1].strip()
     cwd = os.getcwd()
     status = 0
-    calQual = int(calQual) # make sure this is an integer
+    exclude_calqual = int(exclude_calqual) # make sure this is an integer
     if not tardir:
         tardir = os.getcwd()
     else:
@@ -742,7 +745,7 @@ def create_caldb_tar(telescop, instrume, version, tarName = "",
     goodfiles = []
     for cq, cf, cd in zip(cqual, cfiles, cdir):
         testfile = "{0}/{1}".format(cd,cf)
-        if (cq == calQual) and (testfile not in cfile_to_tar):
+        if (cq <> exclude_calqual) and (testfile not in cfile_to_tar):
             cfile_to_tar.append(testfile)
             cdir_to_tar.append(cd)
             goodfiles.append("{0}".format(testfile))
@@ -784,6 +787,30 @@ def create_caldb_tar(telescop, instrume, version, tarName = "",
     tar.close()
     os.chdir(cwd)
     return status
+
+def create_update_tarfile(telescope, update, notice_dir_root='/FTP/caldb/staging/data/'):
+    """ creates tarfile of latest update files 
+    
+    Creates tarfile of the files in the latest update files.  This file can be untarred in $CALDB to update 
+    the previous version of a local caldb to the new version
+    
+    :param telescope: CALDB mission designation (example: 'swift')
+    :param update: CALDB update designation (example: '20170501')
+    :param notice_dir_root: directory root where update notices are stored 
+    :return: 
+    """
+    telescope = telescope.lower().strip()
+    update    = update.lower().strip()
+    notice_dir_root = notice_dir_root.lower().strip()
+    upd = read_update_notice(telescope, update, notice_dir="{0}/{1}/to_ingest".format(notice_dir_root,
+                                                                                      telescope))
+    date = upd[telescope].keys()[0]
+    inst = upd[telescope][date].keys()[0]
+    tarname = 'update_{0}_{1}_{2}.tar'.format(telescope,inst, date)
+    inflist = ["/FTP/caldb/data/{1}/{2}/{0}".format(x, telescope, inst) for x in upd[telescope][date][inst][1:]]
+    outlist = [x.replace('/FTP/caldb/data','data') for x in inflist]
+    hu.create_tarfile(inflist, tarname, tarlist=outlist)
+    return
 
 def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
     import numpy as np
