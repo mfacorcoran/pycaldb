@@ -11,28 +11,38 @@ import jinja2
 from heasarc.utils import utils as hu
 
 def read_update_notice(telescope,updatedate,notice_dir = '/Users/corcoran/Desktop/caldb_updates'):
-    """reads the update notice
+    """
+    reads the update notice
     
     reads the update notification e-mail text file and returns a dictionary of telescope, instrument, 
     and list of files for the update.  See
     
-     "Automated Delivery of Calibration Data to the CALDB" 
-     (https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/docs/memos/cal_gen_2003_001/cal_gen_2003_001.html)
-     for specification on the format of the update notification e-mail
+    "Automated Delivery of Calibration Data to the CALDB"
+    (https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/docs/memos/cal_gen_2003_001/cal_gen_2003_001.html)
+    for specification on the format of the update notification e-mail
     
     :param telesope: caldb telescope name
-    :param updatedate: date of update in YYYYMMDD format as specified in the subject of the e-mail; 
-    not to be confused with the update VERSION, also in YYYYMMDD format.  The update VERSION gives the version number
-    of the individual caldb.indx file describing the index, for example the string 20150304 in caldb.indx20150304
+    :param updatedate: date of update in YYYYMMDD format as specified in the subject of the e-mail; not to be confused with the update VERSION, also in YYYYMMDD format.  The update VERSION gives the version number of the individual caldb.indx file describing the index, for example the string 20150304 in caldb.indx20150304
     :param notice_dir: directory where the notification e-mail is located
     :return: update_dict, a dictionary of instruments and files for the specified update
+
+    VERSIONS
+    0.1 MFC 20170614 Initial Version
+
     """
+    telescope = telescope.strip().lower()
+    if 'heasarcdev'in os.environ['HOST']:
+        notice_dir = '/FTP/caldb/staging/{0}/to_ingest'.format(telescope)
     update_email = '{0}/caldb_update_{1}_{2}.txt'.format(notice_dir,telescope, updatedate)
     update_dict = dict()
     update_dict[telescope] = dict()
     update_dict[telescope][updatedate]=dict()
-    with open(update_email, mode='r') as f:
-        updatelist = f.readlines()
+    try:
+        with open(update_email, mode='r') as f:
+            updatelist = f.readlines()
+            print updatelist
+    except IOError, errmsg:
+        print ("Problem opening {0} ({1}; returning".format(update_email, errmsg))
     # get indices of instrument lines
     instindex=[]
     instrument=[]
@@ -81,6 +91,9 @@ def mk_cifname(telescope, instrument, version="", caldb="http://heasarc.gsfc.nas
     :param version: version of the index file to use (optional; for example caldb.indx20170405)
     :param caldb: caldb top level directory path or url
     :return: name of cif (with full directory path or full URL)
+
+    CHANGES:
+    20160614 MFC fixed error in creating cifname if version is specified
     """
     caldb      = caldb.strip()
     telescope  = telescope.strip().lower()
@@ -90,7 +103,7 @@ def mk_cifname(telescope, instrument, version="", caldb="http://heasarc.gsfc.nas
     if not version:
         cifname = "{0}/data/{1}/{2}/caldb.indx".format(caldb,telescope, instrument)
     else:
-        cifname = "{0}/data/{1}/{2}/index/{3}".format(caldb,telescope, instrument, version)
+        cifname = "{0}/data/{1}/{2}/index/caldb.indx{3}".format(caldb,telescope, instrument, version)
     return cifname
 
 def get_cif(telescope,instrument, version='', caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'):
@@ -197,21 +210,32 @@ def cifstats(telescope, instrument, version='', caldb='http://heasarc.gsfc.nasa.
 
 def make_missioncif_page(telescope,instrument,version, missionurl,
                          outdir="/software/github/heasarc/pycaldb/html/cifs",
-                         templatedir = "/software/github/heasarc/pycaldb/templates",cal_qual = 5,clobber=False):
+                         templatedir = "/software/github/heasarc/pycaldb/templates",
+                         cal_qual = 5,clobber=False):
     """ Make an html-formatted caldb.indx file
     
     Creates an html table from a calibration index file (CIF) the specified mission, instrument & version
     for all the "good" (CAL_QUAL = 0) entries
     
     :param telescope: caldb standard telescope name
-    :param mission:  caldb standard mission name
+    :param instrument:  caldb standard mission name
     :param version: version of the cif (should be in YYYYMMDD format except for chandra in form of 4.7.3)
+    :param missionurl: home page of the mission (http://swift.gsfc.nasa.gov for example)
     :param outdir: output directory to hold the html version of the cif
     :param templatedir: directory where the jinja templates are located
     :param clobber: True to overwrite an existing html cif file
     :return: status (0 if no errors)
+
+    CHANGES
+    20170614 MFC - fixed error in call to cif_to_df; fixed templatedir and outdir on heasarcdev
+    20170630 MFC - fixed error in definition of templatedir and outdir when running on heasarcdev
     """
     status = 0
+    if 'heasarcdev' in os.environ['HOST']:
+        templatedir = "/Home/home1/corcoran/Python/heasarc/pycaldb/templates"
+        if not outdir:
+            outdir = "/www/htdocs/docs/heasarc/caldb/data/{0}/{1}/index".format(telescope.strip().lower(),
+                                                                                instrument.strip().lower()) # use caldbwwwdev
     try:
         caldb = os.environ['CALDB']
     except KeyError:
@@ -227,7 +251,7 @@ def make_missioncif_page(telescope,instrument,version, missionurl,
         cifname = "{0}/data/{1}/{2}/index/{3}".format(caldb,telescope.strip().lower(), instrument.strip().lower(), ciffile.strip())
     else:
         cifname = "{0}/data/{1}/{2}/index/caldb.indx{3}".format(caldb,telescope.strip().lower(), instrument.strip().lower(),version)
-    cifdf = cif_to_df(telescope.strip().lower(),instrument.strip().lower(), cif=cifname)
+    cifdf = cif_to_df(telescope.strip().lower(),instrument.strip().lower(),version.strip().lower())
     if not 'FILTER' in cifdf.columns:
         print ''
         ans = raw_input('CIF missing FILTER values; set FILTER to "INDEF" ([y]/n) > ')
@@ -260,7 +284,8 @@ def make_missioncif_page(telescope,instrument,version, missionurl,
     fname = '{0}/{1}'.format(outdir, outname)
     if os.path.isfile(fname):
         if not clobber:
-            sys.exit("File {0} exists, and clobber = False; not overwritten".format(fname))
+            print("File {0} exists, and clobber = False; not overwritten".format(fname))
+            return
     try:
         with open(fname, mode='w') as fout:
             fout.write(output_html)
@@ -270,10 +295,6 @@ def make_missioncif_page(telescope,instrument,version, missionurl,
         return status
     print "Wrote {0}".format(fname)
     return status
-
-
-    print "Wrote {0}/{1}".format(outdir, outname)
-    return
 
 
 def quizcif(telescope, instrument, cal_cnam, detnam='',cal_cbd=['','','','','','','','',''],
@@ -586,6 +607,153 @@ def get_calqual(cif,file):
     return xno, cqual
 
 
+def sync_caldbweb(mission, instrument, version, DoCopy=False, user='mcorcora', host="heasarcdev",
+                  htmlcaldbdev='/www/htdocs/docs/heasarc/caldb/data',
+                  htmlcaldbprod= '/www.prod/htdocs/docs/heasarc/caldb/data', prompt=True):
+    """ Syncs the caldb website
+
+    After editing/updating appropriate html files on the development side (caldbwww), this routine moves
+    the files to the public side (caldbwwwprod) and also generates the cadlb and heasarc rss feeds
+
+    The html files that need to be updated are::
+
+        caldb_wotsnew.html
+        caldb.rss
+        caldb_supported_missions.html
+        the astro-update associated data file (inc/associated_data.html)
+
+    For nustar updates, you also need to edit these files::
+
+        release_<VERSION>.txt
+        nustar_caldbhistory.html
+        nustar_caldb.html
+        nustar.rss
+
+
+    :param mission: mission name (aka TELESCOP)
+    :param instrument: CALDB-standard instrument name
+    :param version: version of caldb (usually of form YYYYMMDD, except for Chandra)
+    :param DoCopy: if False just print the cmds that will be executed when DoCopy = True
+    :param Prompt: if True will prompt the user to continue if DoCopy
+    :return: returns a list of error messages in case of partially successful copies, or -1 if user quits
+
+    CHANGES
+    20170614 added Prompt keyword if DoCopy chose; also fixed file list for nustar, added instrument parameter
+    """
+    import os
+    mission = mission.lower().strip()
+    errlist = []
+    curuser = os.environ['LOGNAME']
+    curhost = os.environ['HOSTNAME']
+    if (curuser <> user) or (host not in curhost):
+        error = "This function must be run as {0} from {1}; returning".format(user, host)
+        print(error)
+        print("Current user is:{0}  Current host is: {1}".format(curuser, curhost))
+        errlist.append(error)
+        return errlist
+    # generate the caldb news item
+    print "# Generating CALDB news item (develop version)"
+    cmd = "~{0}/bin/caldbdev_rss2.pl".format(user)
+    print cmd
+    if DoCopy:
+        status = os.system(cmd)
+        if status <> 0:
+            errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+    print "# Generating CALDB news item (public version)"
+    cmd = "~mcorcora/bin/caldbprod_rss2.pl"
+    print cmd
+    if DoCopy:
+        status = os.system(cmd)
+        if status <> 0:
+            errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+    # each element of files_to_sync has 3 components:
+    # name of file, start directory, end directory
+    files_to_sync = [
+        ("caldb_wotsnew.html", "/www/htdocs/docs/heasarc/caldb", "/www.prod/htdocs/docs/heasarc/caldb"),
+        ("caldb_supported_missions.html", "/www/htdocs/docs/heasarc/caldb", "/www.prod/htdocs/docs/heasarc/caldb"),
+        ("caldb.rss", "/www/htdocs/docs/heasarc/caldb", "/www.prod/htdocs/docs/heasarc/caldb"),
+        ("associated_data.html", "/www/htdocs/docs/heasarc/astro-update/inc",
+         "/www.prod/htdocs/docs/heasarc/astro-update/inc"),
+        ("astro-update.rss", "/www/htdocs/docs/heasarc/astro-update", "/www.prod/htdocs/docs/heasarc/astro-update")
+    ]
+    cifhtmldev = "{0}/{1}/{2}/index".format(htmlcaldbdev, mission.strip().lower(), instrument.strip().lower())
+    cifhtmlprod = "{0}/{1}/{2}/index".format(htmlcaldbprod, mission.strip().lower(), instrument.strip().lower())
+    files_to_sync.append(("cif_nustar_fpm_{0}.html".format(version),
+                          cifhtmldev, cifhtmlprod))
+    if mission == 'nustar':
+        files_to_sync.append(("release_{0}.txt".format(version), "/www/htdocs/docs/heasarc/caldb/nustar/docs/",
+                             "/www.prod/htdocs/docs/heasarc/caldb/nustar/docs/"))
+        files_to_sync.append(("nustar_caldbhistory.html", "/www/htdocs/docs/heasarc/caldb/nustar/docs",
+                             "/www.prod/htdocs/docs/heasarc/caldb/nustar/docs"))
+        files_to_sync.append(("nustar_caldb.html", "/www/htdocs/docs/heasarc/caldb/nustar",
+                             "/www.prod/htdocs/docs/heasarc/caldb/nustar"))
+        files_to_sync.append(("nustar.rss", "/www/htdocs/docs/nustar/news/",
+                             "/www.prod/htdocs/docs/nustar/news/"))
+    print "\n # Syncing website:"
+    for f in files_to_sync:
+        print "# copying {0} from {1} to {2}".format(f[0], f[1], f[2])
+        cmd = "cp {1}/{0} {2}/{0}".format(f[0], f[1], f[2])
+        print "{0}\n".format(cmd)
+        if DoCopy:
+            status = os.system(cmd)
+            if prompt:
+                ans = hu.yesno('Continue?')
+                if ans:
+                    pass
+                else:
+                    print "Stopping at user request"
+                    status = -1
+                    return status
+            if status <> 0:
+                errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+    if mission == "nustar":
+        print "# Creating {0} and heasarc newsfeeds (dev version)".format(mission)
+        cmd = "/www/htdocs/docs/rss/nustar_rss2.pl"
+        print("{0}\n".format(cmd))
+        if DoCopy:
+            status = os.system(cmd)
+            if status <> 0:
+                errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+        print "# Creating nustar and heasarc newsfeeds (public version)"
+        cmd = "/www.prod/htdocs/docs/rss/nustar_rss2.pl"
+        print("{0}\n".format(cmd))
+        if DoCopy:
+            status = os.system(cmd)
+            if prompt:
+                ans = hu.yesno('Continue?')
+                if ans:
+                    pass
+                else:
+                    print "Stopping at user request"
+                    status = -1
+                    return status
+            if status <> 0:
+                errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+    # create heasarc news feed from astroupdate
+    print "\n# Creating heasarc newsfeed (dev version)".format(mission)
+    cmd = "/www/htdocs/docs/rss/software_rss2.pl"
+    print("{0}\n".format(cmd))
+    if DoCopy:
+        status = os.system(cmd)
+        if status <> 0:
+            errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+    print "\n# Creating heasarc newsfeed (public version)"
+    cmd = "/www.prod/htdocs/docs/rss/software_rss2.pl"
+    print("{0}\n".format(cmd))
+    if DoCopy:
+        status = os.system(cmd)
+        if prompt:
+            ans = hu.yesno('Continue?')
+            if ans:
+                pass
+            else:
+                print "Stopping at user request"
+                status = -1
+                return status
+        if status <> 0:
+            errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
+    return errlist
+
 def get_calpars (toolname, package='heasoft'):
     """ parameters that accept the CALDB string as input
     
@@ -619,7 +787,7 @@ def get_calpars (toolname, package='heasoft'):
     return calpars
 
 def create_caldb_tar(telescop, instrume, version, tarName = "",
-                     tardir = "", exclude_calqual = 5,
+                     tardir = "", calQual = 0,
                      caldbdirs=['bcf','cpf'],
                      caldb = "http://heasarc.gsfc.nasa.gov/FTP/caldb"):
     """ Create CALDB tar file
@@ -641,8 +809,6 @@ def create_caldb_tar(telescop, instrume, version, tarName = "",
     :param version: version of caldb.indx file to use to create tar file (for example caldb.indx20170504)
     :param tarName: name of tarfile to be created - will be constructed if not specified
     :param tardir: name of output directory for tarfile; if not specified use CWD
-    :param exclude_calqual: quality value to exclude 
-    (some missions like Chandra use cal_qual values from 0 to 4 as acceptable values)
     :param caldbdirs: subdirectories of $CALDB/data/<telescop>/<instrume> to tar 
         (the index directory is always retrieved)
     :param caldb: top-level caldb directory or url
@@ -653,14 +819,14 @@ def create_caldb_tar(telescop, instrume, version, tarName = "",
     import shutil
     # TODO: allow selection of one or more subdirectories to tar; useful for clockcor
     #cif = get_cif(telescop, instrume)
-    tel=telescop.strip().lower()
-    instr = instrume.strip().lower()
-    ver = version.strip()
+    tel=telescop.strip()
+    instr = instrume.strip()
+    #ver = version.strip()
     # ver should be of the form 20170503
-    # ver = version.split('caldb.indx')[1].strip()
+    ver = version.split('caldb.indx')[1].strip()
     cwd = os.getcwd()
     status = 0
-    exclude_calqual = int(exclude_calqual) # make sure this is an integer
+    calQual = int(calQual) # make sure this is an integer
     if not tardir:
         tardir = os.getcwd()
     else:
@@ -745,7 +911,7 @@ def create_caldb_tar(telescop, instrume, version, tarName = "",
     goodfiles = []
     for cq, cf, cd in zip(cqual, cfiles, cdir):
         testfile = "{0}/{1}".format(cd,cf)
-        if (cq <> exclude_calqual) and (testfile not in cfile_to_tar):
+        if (cq == calQual) and (testfile not in cfile_to_tar):
             cfile_to_tar.append(testfile)
             cdir_to_tar.append(cd)
             goodfiles.append("{0}".format(testfile))
@@ -855,121 +1021,10 @@ def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
     a="Done"
     return a
 
-def sync_caldbweb(DoCopy=False, user='mcorcora', host="heasarcdev", mission='', version=''):
-    """ Syncs the caldb website
-    
-    After editing/updating appropriate html files on the development side (caldbwww), this routine moves 
-    the files to the public side (caldbwwwprod) and also generates the cadlb and heasarc rss feeds
-    
-    The html files that need to be updated are::
-    
-        caldb_wotsnew.html
-        caldb.rss
-        caldb_supported_missions.html
-        the astro-update associated data file (inc/associated_data.html)
-        
-    For nustar updates, you also need to edit these files::
-    
-        release_<VERSION>.txt
-        nustar_caldbhistory.html
-        nustar_caldb.html
-        nustar.rss
 
-    
-    :param mission: mission name (aka TELESCOP)
-    :param version: version of caldb (usually of form YYYYMMDD)
-    :param DoCopy: if False just print the cmds that will be executed when DoCopy = True
-    :return: 
-    """
-    import os
-    mission = mission.lower().strip()
-    errlist=[]
-    curuser = os.environ['LOGNAME']
-    curhost = os.environ['HOSTNAME']
-    if (curuser<>user) or (host not in curhost ):
-        error = "This function must be run as {0} from {1}; returning".format(user, host)
-        print(error)
-        print("Current user is:{0}  Current host is: {1}".format(curuser, curhost))
-        errlist.append(error)
-        return errlist
-    # generate the caldb news item
-    print "# Generating CALDB news item (develop version)"
-    cmd = "~mcorcora/bin/caldbdev_rss2.pl"
-    print cmd
-    if DoCopy:
-        status = os.system(cmd)
-        if status <> 0:
-            errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
-    print "# Generating CALDB news item (public version)"
-    cmd = "~mcorcora/bin/caldbprod_rss2.pl"
-    print cmd
-    if DoCopy:
-        status = os.system(cmd)
-        if status <> 0:
-            errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
-    # each element of files_to_sync has 3 components:
-    # name of file, start directory, end directory
-    files_to_sync = [
-        ("caldb_wotsnew.html","/www/htdocs/docs/heasarc/caldb","/www.prod/htdocs/docs/heasarc/caldb"),
-        ("caldb_supported_missions.html", "/www/htdocs/docs/heasarc/caldb", "/www.prod/htdocs/docs/heasarc/caldb"),
-        ("caldb.rss", "/www/htdocs/docs/heasarc/caldb", "/www.prod/htdocs/docs/heasarc/caldb"),
-        ("associated_data.html","/www/htdocs/docs/heasarc/astro-update/inc","/www.prod/htdocs/docs/heasarc/astro-update/inc"),
-        ("astro-update.rss","/www/htdocs/docs/heasarc/astro-update","/www.prod/htdocs/docs/heasarc/astro-update")
-    ]
-    if mission == 'nustar':
-        files_to_sync.append(
-            [
-                ("release_{0}.txt".format(version), "/www/htdocs/docs/heasarc/caldb/nustar/docs/","/www.prod/htdocs/docs/heasarc/caldb/nustar/docs/"),
-                ("nustar_caldbhistory.html","/www/htdocs/docs/heasarc/caldb/nustar/docs/","/www.prod/htdocs/docs/heasarc/caldb/nustar/docs/"),
-                ("nustar_caldb.html","/www/htdocs/docs/heasarc/caldb/nustar","/www.prod/htdocs/docs/heasarc/caldb/nustar"),
-                ("cif_nustar_fpm_{0}.html".format(version),"/FTP/caldb/local/software/pro/DATA_DELIVERIES/pro/mission_summaries/work","/www/htdocs/docs/heasarc/caldb/data/nustar/fpm/index"),
-                ("cif_nustar_fpm_{0}.html".format(version), "/FTP/caldb/local/software/pro/DATA_DELIVERIES/pro/mission_summaries/work","/www.prod/htdocs/docs/heasarc/caldb/data/nustar/fpm/index"),
-                ("nustar.rss","/www/htdocs/docs/nustar/news/","/www.prod/htdocs/docs/nustar/news/")
-            ]
-        )
-    print "\n # Syncing website:"
-    for f in files_to_sync:
-        print "# copying {0} from {1} to {2}".format(f[0],f[1],f[1])
-        cmd = "cp {1}/{0} {2}/{0}".format(f[0],f[1],f[2])
-        print "{0}\n".format(cmd)
-        if DoCopy:
-            status = os.system(cmd)
-            if status<>0:
-                errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
-    if mission == "nustar":
-        print "# Creating {0} and heasarc newsfeeds (dev version)".format(mission)
-        cmd = "/www/htdocs/docs/rss/nustar_rss2.pl"
-        print("{0}\n".format(cmd))
-        if DoCopy:
-            status = os.system(cmd)
-            if status <> 0:
-                errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
-        print "# Creating nustar and heasarc newsfeeds (public version)"
-        cmd = "/www.prod/htdocs/docs/rss/nustar_rss2.pl"
-        print("{0}\n".format(cmd))
-        if DoCopy:
-            status = os.system(cmd)
-            if status <> 0:
-                errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
-    # create heasarc news feed from astroupdate
-    print "\n # Creating heasarc newsfeed (dev version)".format(mission)
-    cmd = "/www/htdocs/docs/rss/software_rss2.pl"
-    print("{0}\n".format(cmd))
-    if DoCopy:
-        status = os.system(cmd)
-        if status <> 0:
-            errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
-    print "\n #Creating heasarc newsfeed (public version)"
-    cmd = "/www.prod/htdocs/docs/rss/software_rss2.pl"
-    print("{0}\n".format(cmd))
-    if DoCopy:
-        status = os.system(cmd)
-        if status <> 0:
-            errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
-    return errlist
-
-def test_makemissioncif(telescope='Swift',instrument='SC', version='20170505',missionurl='http://swift.gsfc.nasa.gov'):
-    make_missioncif_page(telescope, instrument,version, missionurl=missionurl, clobber=True)
+def test_makemissioncif(telescope='Swift',instrument='SC', version='20170629',missionurl='http://swift.gsfc.nasa.gov'):
+    outdir="/software/github/heasarc/pycaldb/html/cifs"
+    make_missioncif_page(telescope, instrument,version, missionurl=missionurl, clobber=False, outdir=outdir)
     return
 
 if __name__ == "__main__":
@@ -979,14 +1034,16 @@ if __name__ == "__main__":
     # test
     #create_caldb_tar('swift', 'xrt', '20160609 ', tardir='/FTP/caldb/staging/tmp', caldb='/FTP/caldb')
     #test_pycaldb(0)
-    # dummy  command
+
     #test_makemissioncif()
+
     #cifdf = cif_to_df('nustar','fpm')
     # cstats = cifstats('nustar','fpm')
     # cstatsold = cifstats('nustar','fpm', version='caldb.indx20160606')
     # for k in cstats.keys():
     #     print "{0:30s} latest = {1} 20160606 = {2}".format(k, cstats[k],cstatsold[k])
-    ud = read_update_notice('swift', '20081203')
-    for k in ud['swift'].keys():
-        for i in ud['swift'][k].keys():
-            print k, i, ud['swift'][k][i]
+    #ud = read_update_notice('swift', '20081203')
+    #for k in ud['swift'].keys():
+    #    for i in ud['swift'][k].keys():
+    #        print k, i, ud['swift'][k][i]
+    ud = read_update_notice('Swift', '20170629')
