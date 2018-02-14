@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>List of pycaldb Functions &#8212; pycaldb 1.0 documentation</title>
-    
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -24,46 +21,60 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Tutorial" href="tutorial.html" />
+    <link rel="prev" title="How to Create an HTML Summary of a caldb.indx file" href="pycaldb_mkhtml.html" />
    
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
   </head>
-  <body role="document">  
+  <body>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-pycaldb">
-<span id="list-of-pycaldb-functions"></span><h1>List of pycaldb Functions<a class="headerlink" href="#module-pycaldb" title="Permalink to this headline">¶</a></h1>
-<dl class="function">
-<dt id="pycaldb.cif_diff">
-<code class="descclassname">pycaldb.</code><code class="descname">cif_diff</code><span class="sig-paren">(</span><em>telescope</em>, <em>instrument</em>, <em>newcif</em>, <em>oldcif</em>, <em>caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.cif_diff" title="Permalink to this definition">¶</a></dt>
-<dd><p>get differences between new and old versions of a caldb.indx file</p>
-<dl class="docutils">
-<dt>cif_diff compares a new caldb.indx file to an older one and returns </dt>
-<dd><ul class="first last simple">
-<li>names of files in newcif which are not in the old cif</li>
-<li></li>
-</ul>
-</dd>
+  <div class="section" id="list-of-pycaldb-functions">
+<h1>List of pycaldb Functions<a class="headerlink" href="#list-of-pycaldb-functions" title="Permalink to this headline">¶</a></h1>
+<p>here is a list of all the pycaldb functions as of version 0.10:</p>
+<span class="target" id="module-pycaldb"></span><dl class="class">
+<dt id="pycaldb.Caldb">
+<em class="property">class </em><code class="descclassname">pycaldb.</code><code class="descname">Caldb</code><span class="sig-paren">(</span><em>caldb=None</em>, <em>caldbconfig=None</em>, <em>caldbalias=None</em>, <em>telescope=None</em>, <em>instrument=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines a CALDB object; optionally specify the telescope (&amp; instrument)</p>
+<dl class="method">
+<dt id="pycaldb.Caldb.check_config">
+<code class="descname">check_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.check_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns True if the CALDB is configured for the specified telescope and instrument, False otherwise
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.cif_diff">
+<code class="descname">cif_diff</code><span class="sig-paren">(</span><em>version</em>, <em>print_report=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.cif_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>compares the current Caldbindx cif (as given by the caldb.cif attribute) to the specified version and returns a dictionary showing:
+- MISSING_FROM_COMPARISON:names of files &amp; extension numbers in current</p>
+<blockquote>
+<div>caldb.cif which are not in the specified version</div></blockquote>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>MISSING_FROM_CURRENT: names of files &amp; extension numbers in specified version of the cif which</dt>
+<dd>are not in the current caldb.cif</dd>
 </dl>
+</li>
+</ul>
+<p>TODO
+- CHANGED_QUALITY: names of files &amp; extension numbers in the current Caldbindx object which have changed their quality flags compared
+to the comparison Caldbindx object TODO</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>telescope</strong> &#8211; caldb telescope name</li>
-<li><strong>instrument</strong> &#8211; caldb instrument name</li>
-<li><strong>newcif</strong> &#8211; version of caldb.indx file (for eg, caldb.indx20170405)</li>
-<li><strong>oldcif</strong> &#8211; version of caldb.indx file to compare against (for eg, caldb.indx20170203)</li>
-<li><strong>caldb</strong> &#8211; top-level caldb directory (or url)</li>
+<li><strong>Cif2cmp</strong> – Caldbindx object used for comparison with current Caldbindx instance</li>
+<li><strong>print_report</strong> – if True, prints a nicely formatted report of the differences to the screen</li>
 </ul>
 </td>
 </tr>
@@ -74,9 +85,241 @@
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="pycaldb.Caldb.cifstats">
+<code class="descname">cifstats</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.cifstats" title="Permalink to this definition">¶</a></dt>
+<dd><p>get summary statistics for a caldb.indx file</p>
+<p>returns some interesting statistics for the specified CIF:
+number of Unique filenames
+number of Unique files (a file with the same name in 2 separate directories is counted as 2 different files;
+hopefully this doean’t happen)
+number of files with quality = 0
+number of files with quality = 5
+number of files with other quality values
+number of uniques CNAM values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>telescope</strong> – caldb TELESCOPE value</li>
+<li><strong>instrument</strong> – caldb Instrument value</li>
+<li><strong>version</strong> – caldb.indx version (eg, caldb.indx20170405)</li>
+<li><strong>caldb</strong> – caldb top-level directory (or url)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dictionary of summary statistics for the caldb.indx file</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.find_calfiles">
+<code class="descname">find_calfiles</code><span class="sig-paren">(</span><em>cname</em>, <em>cqual=0</em>, <em>return_files=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.find_calfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a list of files from a caldb.indx object having the specified
+CAL_CNAM and CAL_QUAL</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cname</strong> – CAL_CNAM value of interest (eg: “hkrange”) (UPPER CASE)</li>
+<li><strong>cqual</strong> – calibration quality value CAL_QUAL (integer; default 0)</li>
+<li><strong>return_files</strong> – if False, returns the entire dataframe matching the specified cname, cqual;</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>if True, returns only the unique filenames with fully-qualified subdirectory path
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.get_calfile_info">
+<code class="descname">get_calfile_info</code><span class="sig-paren">(</span><em>calfilename</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.get_calfile_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns info from the caldbindx file for the specified calfilename
+:param calfilename: name of cal file of interest, with fully specified directory path relative to $CALDB
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.get_cif">
+<code class="descname">get_cif</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.get_cif" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the calibration index file as a pandas dataframe</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a pandas dataframe of the Caldbindx object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.get_cnames">
+<code class="descname">get_cnames</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.get_cnames" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a list of all the unique, defined CAL_CNAME values from the caldb.indx file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>caldb</strong> – optionally specify the caldb path (URLs allowed)</li>
+<li><strong>cifname</strong> – optionally specify the name of the caldb.indx file (uses current file if not specified)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of all the unique defined CAL_CNAME values from the caldb.indx file</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.get_config">
+<code class="descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a dictionary of the caldb configuration as documented in caldb.config
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.get_insdir">
+<code class="descname">get_insdir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.get_insdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>gets the directory in the caldb that corresponds to the specified instrument
+:return: path to instrument directory</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.get_instruments">
+<code class="descname">get_instruments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.get_instruments" title="Permalink to this definition">¶</a></dt>
+<dd><p>if self.telescope defined, returns the list of defined instruments from the caldb.config file
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.get_telescopes">
+<code class="descname">get_telescopes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.get_telescopes" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the names of the missions defined in the caldb.config file
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.get_versions">
+<code class="descname">get_versions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.get_versions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the versions of the caldb.indx files available for the telescope and instrument</p>
+<p>Retrieves the available versions of the caldb.indx files as listed in the index subdirectory</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">returns the available caldb.indx* files from the index directory as a list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.html_summary">
+<code class="descname">html_summary</code><span class="sig-paren">(</span><em>missionurl=''</em>, <em>outdir='.'</em>, <em>templatedir='/software/github/heasarc/pycaldb/templates'</em>, <em>cal_qual=5</em>, <em>clobber=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.html_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>write an html summary of the specified version of the Caldb instance</p>
+<p>NOTE: the instrument attribute of the CALDB instance should be set to the subdirectory
+of $CALDB/data/&lt;telescope&gt; in which the
+caldb index files are located
+(i.e., for NuSTAR, self.instrument = ‘fpm’ rather than ‘fpma’)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>missionurl</strong> – URL of the mission/telescope home page</li>
+<li><strong>outdir</strong> – location of output html version of cif</li>
+<li><strong>templatedir</strong> – location of FLASK template</li>
+<li><strong>cal_qual</strong> – entries in cif with CAL_QUAL &lt; this value will be displayed in the html file</li>
+<li><strong>clobber</strong> – if True, overwrite existing file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>CHANGES
+20170614 MFC - fixed error in call to cif_to_df; fixed templatedir and outdir on heasarcdev
+20170630 MFC - fixed error in definition of templatedir and outdir when running on heasarcdev</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.set_cif">
+<code class="descname">set_cif</code><span class="sig-paren">(</span><em>version=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.set_cif" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the cif attribute of the Caldb object to the specified version; if none, use current caldb.indx file
+:param version: optional, version of the caldbindx file to use (eg: ‘caldb.indx20170727’)
+:return: sets the cif attribute to the specified caldb version</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.set_instrument">
+<code class="descname">set_instrument</code><span class="sig-paren">(</span><em>instrument</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.set_instrument" title="Permalink to this definition">¶</a></dt>
+<dd><p>for one of the defined instruments
+gets the versions of the caldb.indx file available
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycaldb.Caldb.set_telescope">
+<code class="descname">set_telescope</code><span class="sig-paren">(</span><em>mission</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.Caldb.set_telescope" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets the caldb to the caldb for a specific mission;
+prints the available instruments
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycaldb.CaldbFile">
+<em class="property">class </em><code class="descclassname">pycaldb.</code><code class="descname">CaldbFile</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.CaldbFile" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>A caldb file object has these attributes:</dt>
+<dd><ul class="first last simple">
+<li>a file name</li>
+<li>a caldb path relative to $CALDB (note that the actual subdirectory holding the file is not specified by the file information)</li>
+<li>a detector to which it belongs (optional)</li>
+<li>an instrument to which the detector belongs</li>
+<li>a mission to which the instrument belongs</li>
+<li>a number of elements (primary HDU + extensions)</li>
+<li>a file size in bytes</li>
+<li>a time of creation</li>
+<li>a time of last modification</li>
+<li>a caldb class (CCLSmmmmm) (bcf, cpf etc)</li>
+<li>each element (primary hdu + extensions) of the file has:</li>
+<li>a caldb contents descriptor label (CCNMmmmm)</li>
+<li>A caldb validity start date (CVSDmmmmm keyword),</li>
+<li>a caldb validity start time on the start date (CVSTmmmmm)</li>
+<li>a caldb data type (CDTPmmmmm)</li>
+<li>zero or more calibration boundary limits (CBDnmmmm)</li>
+<li>a description of the element contents (CDESmmmm)</li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pycaldb.CaldbFile.summarize">
+<code class="descname">summarize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.CaldbFile.summarize" title="Permalink to this definition">¶</a></dt>
+<dd><p>prints out a summary view of the information stored in a calfile
+:param self:
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="pycaldb.cif_to_df">
-<code class="descclassname">pycaldb.</code><code class="descname">cif_to_df</code><span class="sig-paren">(</span><em>telescope</em>, <em>instrument</em>, <em>version=''</em>, <em>caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.cif_to_df" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycaldb.</code><code class="descname">cif_to_df</code><span class="sig-paren">(</span><em>telescope</em>, <em>instrument</em>, <em>version=None</em>, <em>cifname=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.cif_to_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>convert caldb.indx file to a dataframe</p>
 <p>Creates a pandas dataframe from a calibration index file (cif) for a given mission/instrument</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -84,9 +327,9 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>telescope</strong> &#8211; caldb standard telescope name</li>
-<li><strong>instrument</strong> &#8211; caldb standard instrument name for that telescope</li>
-<li><strong>cif</strong> &#8211; (optional) specific cif to retrieve</li>
+<li><strong>telescope</strong> – caldb standard telescope name</li>
+<li><strong>instrument</strong> – caldb standard instrument name for that telescope</li>
+<li><strong>cif</strong> – (optional) specific cif to retrieve</li>
 </ul>
 </td>
 </tr>
@@ -99,12 +342,12 @@
 
 <dl class="function">
 <dt id="pycaldb.cifstats">
-<code class="descclassname">pycaldb.</code><code class="descname">cifstats</code><span class="sig-paren">(</span><em>telescope</em>, <em>instrument</em>, <em>version=''</em>, <em>caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.cifstats" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycaldb.</code><code class="descname">cifstats</code><span class="sig-paren">(</span><em>telescope=''</em>, <em>instrument=''</em>, <em>version=''</em>, <em>caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'</em>, <em>cifname=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.cifstats" title="Permalink to this definition">¶</a></dt>
 <dd><p>get summary statistics for a caldb.indx file</p>
 <p>returns some interesting statistics for the specified CIF:
 number of Unique filenames
 number of Unique files (a file with the same name in 2 separate directories is counted as 2 different files; 
-hopefully this doean&#8217;t happen)
+hopefully this doean’t happen)
 number of files with quality = 0
 number of files with quality = 5
 number of files with other quality values
@@ -114,10 +357,10 @@ number of uniques CNAM values</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>telescope</strong> &#8211; caldb TELESCOPE value</li>
-<li><strong>instrument</strong> &#8211; caldb Instrument value</li>
-<li><strong>version</strong> &#8211; caldb.indx version (eg, caldb.indx20170405)</li>
-<li><strong>caldb</strong> &#8211; caldb top-level directory (or url)</li>
+<li><strong>telescope</strong> – caldb TELESCOPE value</li>
+<li><strong>instrument</strong> – caldb Instrument value</li>
+<li><strong>version</strong> – caldb.indx version (eg, caldb.indx20170405)</li>
+<li><strong>caldb</strong> – caldb top-level directory (or url)</li>
 </ul>
 </td>
 </tr>
@@ -130,25 +373,24 @@ number of uniques CNAM values</p>
 
 <dl class="function">
 <dt id="pycaldb.ck_calfile_incif">
-<code class="descclassname">pycaldb.</code><code class="descname">ck_calfile_incif</code><span class="sig-paren">(</span><em>caldir</em>, <em>filename</em>, <em>telescope</em>, <em>instrument</em>, <em>caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'</em>, <em>version=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.ck_calfile_incif" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycaldb.</code><code class="descname">ck_calfile_incif</code><span class="sig-paren">(</span><em>calfile</em>, <em>telescope</em>, <em>instrument</em>, <em>caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'</em>, <em>version=''</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.ck_calfile_incif" title="Permalink to this definition">¶</a></dt>
 <dd><p>verifies that a specified file is actually in the caldb.indx file</p>
 <p>for a specified filename, checks that this file exists in the specified calibration index file (cif),
-then checks that the CALDB keyword values are consistent between the cif and the actual file 
+then checks that the CALDB keyword values are consistent between the cif and the actual file
 determines if the file exists in the caldb</p>
 <p>usage:
-ck_calfile_incif(&#8216;data/hitomi/sxi/cpf/background&#8217;,&#8217;ah_sxi_nxbpnt_20140101v001.pha&#8217;,
-caldb = &#8216;<a class="reference external" href="http://heasarc.gsfc.nasa.gov/FTP/caldb',cif='caldb.indx20170405">http://heasarc.gsfc.nasa.gov/FTP/caldb&#8217;,cif=&#8217;caldb.indx20170405</a>&#8216;)</p>
+ck_calfile_incif(‘data/hitomi/sxi/cpf/background’,’ah_sxi_nxbpnt_20140101v001.pha’,
+caldb = ‘<a class="reference external" href="http://heasarc.gsfc.nasa.gov/FTP/caldb',cif='caldb.indx20170405">http://heasarc.gsfc.nasa.gov/FTP/caldb’,cif=’caldb.indx20170405</a>’)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>caldir</strong> &#8211; path to file in the caldb relative to caldb top level directory/url</li>
-<li><strong>filename</strong> &#8211; specified file</li>
-<li><strong>telescope</strong> &#8211; Name of TELESCOP</li>
-<li><strong>instrument</strong> &#8211; Name of Instrumentn</li>
-<li><strong>caldb</strong> &#8211; caldb top level directory/url</li>
-<li><strong>version</strong> &#8211; version of cif to use (for example caldb.indx20170405); if blank use caldb.indx</li>
+<li><strong>calfile</strong> – caldb file relative to $CALDB</li>
+<li><strong>telescope</strong> – Name of TELESCOP</li>
+<li><strong>instrument</strong> – Name of Instrument</li>
+<li><strong>caldb</strong> – caldb top level directory/url</li>
+<li><strong>version</strong> – version of cif to use (for example caldb.indx20170405); if blank use caldb.indx</li>
 </ul>
 </td>
 </tr>
@@ -171,9 +413,9 @@ then checks the specified caldb for them</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cif</strong> &#8211; HDU representation of the CALDB index file</li>
-<li><strong>caldb</strong> &#8211; location of CALDB data</li>
-<li><strong>quiet</strong> &#8211; if True suppress status messages</li>
+<li><strong>cif</strong> – HDU representation of the CALDB index file</li>
+<li><strong>caldb</strong> – location of CALDB data</li>
+<li><strong>quiet</strong> – if True suppress status messages</li>
 </ul>
 </td>
 </tr>
@@ -198,11 +440,11 @@ and need to add capability to include more than one pname (i.e. for AND or OR co
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cbd</strong> &#8211; list of calibration boundaries (from get_cbds, for example)</li>
-<li><strong>pname</strong> &#8211; name of parameter to test</li>
-<li><strong>pval</strong> &#8211; value of named parameter to test</li>
-<li><strong>punit</strong> &#8211; physical unit (optional)</li>
-<li><strong>chatter</strong> &#8211; level of verbosity</li>
+<li><strong>cbd</strong> – list of calibration boundaries (from get_cbds, for example)</li>
+<li><strong>pname</strong> – name of parameter to test</li>
+<li><strong>pval</strong> – value of named parameter to test</li>
+<li><strong>punit</strong> – physical unit (optional)</li>
+<li><strong>chatter</strong> – level of verbosity</li>
 </ul>
 </td>
 </tr>
@@ -217,7 +459,7 @@ and need to add capability to include more than one pname (i.e. for AND or OR co
 <dt id="pycaldb.create_caldb_tar">
 <code class="descclassname">pycaldb.</code><code class="descname">create_caldb_tar</code><span class="sig-paren">(</span><em>telescop, instrume, version, tarName='', tardir='', calQual=0, caldbdirs=['bcf', 'cpf'], caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.create_caldb_tar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create CALDB tar file</p>
-<p>creates a tar file of &#8220;good&#8221; files for given mission/instrument
+<p>creates a tar file of “good” files for given mission/instrument
 from the HEASARC caldb.</p>
 <p>This should provide a means to generate the tar file so a) caldbmgr can generate
 new tar files for new caldb updates and b) allow users the ability to
@@ -236,14 +478,14 @@ generate a tar file of previous caldb versions to install locally</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>mission</strong> &#8211; name of the mission in the caldb (str) ex: nustar</li>
-<li><strong>instrume</strong> &#8211; name of the mission&#8217;s instrument (str) ex: fpma</li>
-<li><strong>version</strong> &#8211; version of caldb.indx file to use to create tar file (for example caldb.indx20170504)</li>
-<li><strong>tarName</strong> &#8211; name of tarfile to be created - will be constructed if not specified</li>
-<li><strong>tardir</strong> &#8211; name of output directory for tarfile; if not specified use CWD</li>
-<li><strong>caldbdirs</strong> &#8211; subdirectories of $CALDB/data/&lt;telescop&gt;/&lt;instrume&gt; to tar 
+<li><strong>mission</strong> – name of the mission in the caldb (str) ex: nustar</li>
+<li><strong>instrume</strong> – name of the mission’s instrument (str) ex: fpma</li>
+<li><strong>version</strong> – version of caldb.indx file to use to create tar file (for example caldb.indx20170504)</li>
+<li><strong>tarName</strong> – name of tarfile to be created - will be constructed if not specified</li>
+<li><strong>tardir</strong> – name of output directory for tarfile; if not specified use CWD</li>
+<li><strong>caldbdirs</strong> – subdirectories of $CALDB/data/&lt;telescop&gt;/&lt;instrume&gt; to tar 
 (the index directory is always retrieved)</li>
-<li><strong>caldb</strong> &#8211; top-level caldb directory or url</li>
+<li><strong>caldb</strong> – top-level caldb directory or url</li>
 </ul>
 </td>
 </tr>
@@ -252,6 +494,89 @@ generate a tar file of previous caldb versions to install locally</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycaldb.create_update_tarfile">
+<code class="descclassname">pycaldb.</code><code class="descname">create_update_tarfile</code><span class="sig-paren">(</span><em>telescope</em>, <em>update</em>, <em>notice_dir_root='/FTP/caldb/staging/data/'</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.create_update_tarfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>creates tarfile of latest update files</p>
+<p>Creates tarfile of the files in the latest update files.  This file can be untarred in $CALDB to update 
+the previous version of a local caldb to the new version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>telescope</strong> – CALDB mission designation (example: ‘swift’)</li>
+<li><strong>update</strong> – CALDB update designation (example: ‘20170501’)</li>
+<li><strong>notice_dir_root</strong> – directory root where update notices are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycaldb.file_exists">
+<code class="descclassname">pycaldb.</code><code class="descname">file_exists</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.file_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns true if file exists in the caldb
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycaldb.get_caldbconfig">
+<code class="descclassname">pycaldb.</code><code class="descname">get_caldbconfig</code><span class="sig-paren">(</span><em>caldbconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.get_caldbconfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses the caldb.config file, returns a dictionary of:
+caldbconfig={‘telescope’:{‘instrument1’:[‘caldb_variable’, ‘caldb_index_directory’,’cifname’,’store_dev’,’store_dir’]}}
+From the caldb.config file:
+# Each non-comment line has seven tokens.  The first two tokens are the
+# mission and instrument (these tokens must be entirely in uppercase);
+# the remaining tokens describe the location of the index file and the
+# calibration storage directory in a system independent manner.  Tokens
+# 3, 4, and 5 are the device (can also be an environment variable),
+# directory (subdirectories are separated by ‘/’ characters), and file
+# name of the Calibration index file.  Tokens 6 and 7 are the device and
+# directory of the calibration storage directory, and are not used;
+# they are available for historical reasons only
+#
+#
+# For example, a typical line in this file might look like:
+#
+# HOSR HOSEHD caldb data/hosr/hosehd caldb.indx caldb data/hosr/hosehd
+#
+# If this file were read on a UNIX machine, then this line would
+# indicate that data for the instrument HOSEHD, of the mission HOSR will
+# be indexed in the file
+#
+# /caldb/data/hosr/hosehd/caldb.indx
+#
+# and the calibration files for this instrument will be located beneath
+# the directory
+#
+# /caldb/data/hosr/hosehd</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>caldbconfig</strong> – path to/name of the caldb config file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">caldbconfig dictionary</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycaldb.get_calkeys">
+<code class="descclassname">pycaldb.</code><code class="descname">get_calkeys</code><span class="sig-paren">(</span><em>filename</em>, <em>extno</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.get_calkeys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the caldb keywords from the given extension number in a caldb file
+:param filename: name of the caldb file
+:param extno: integer extension number to search (0 for the primary HDU)
+:return: dictionary of the caldb keyword values</p>
 </dd></dl>
 
 <dl class="function">
@@ -265,8 +590,8 @@ which except the string CALDB</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>toolname</strong> &#8211; name of HEASoft tool/program</li>
-<li><strong>package</strong> &#8211; Name of software package</li>
+<li><strong>toolname</strong> – name of HEASoft tool/program</li>
+<li><strong>package</strong> – Name of software package</li>
 </ul>
 </td>
 </tr>
@@ -288,8 +613,8 @@ and for a specified file name, retrieves the CAL_QUAL for all the extensions in 
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cif</strong> &#8211; HDU representation of the CALDB index</li>
-<li><strong>file</strong> &#8211; name of file for which quality flag is returned</li>
+<li><strong>cif</strong> – HDU representation of the CALDB index</li>
+<li><strong>file</strong> – name of file for which quality flag is returned</li>
 </ul>
 </td>
 </tr>
@@ -304,95 +629,20 @@ and for a specified file name, retrieves the CAL_QUAL for all the extensions in 
 <dt id="pycaldb.get_cbds">
 <code class="descclassname">pycaldb.</code><code class="descname">get_cbds</code><span class="sig-paren">(</span><em>telescope</em>, <em>instrument</em>, <em>caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.get_cbds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get calibration boundaries</p>
-<p>Accesses the calibration boundary values for a specified telescope/instrument</p>
+<p>Accesses the calibration boundary values in the caldb.indx file
+for a specified telescope/instrument</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>telescope</strong> &#8211; Name of Telescope/Mission (nustar)</li>
-<li><strong>instrument</strong> &#8211; Name of Instrument (fpm)</li>
-<li><strong>caldb</strong> &#8211; location of caldb data</li>
+<li><strong>telescope</strong> – Name of Telescope/Mission (nustar)</li>
+<li><strong>instrument</strong> – Name of Instrument (fpm)</li>
+<li><strong>caldb</strong> – location of caldb data</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">calibration boundary values and table of CIF data</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="pycaldb.get_cif">
-<code class="descclassname">pycaldb.</code><code class="descname">get_cif</code><span class="sig-paren">(</span><em>telescope</em>, <em>instrument</em>, <em>version=''</em>, <em>caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.get_cif" title="Permalink to this definition">¶</a></dt>
-<dd><p>convert caldb.indx file to FITS HDU</p>
-<p>reads the caldb.indx file for a given telescope and instrument, for either a local caldb installation
-or a remote installation access via http or ftp</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>telescope</strong> &#8211; telescope specification for cif</li>
-<li><strong>instrument</strong> &#8211; instrument specification for telescope</li>
-<li><strong>version</strong> &#8211; version of cif to use (for example caldb.indx20160502)</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">returns a FITS hdu representation of the caldb.indx file</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="pycaldb.make_missioncif_page">
-<code class="descclassname">pycaldb.</code><code class="descname">make_missioncif_page</code><span class="sig-paren">(</span><em>telescope</em>, <em>instrument</em>, <em>version</em>, <em>missionurl</em>, <em>outdir='/software/github/heasarc/pycaldb/html/cifs'</em>, <em>templatedir='/software/github/heasarc/pycaldb/templates'</em>, <em>cal_qual=5</em>, <em>clobber=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.make_missioncif_page" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make an html-formatted caldb.indx file</p>
-<p>Creates an html table from a calibration index file (CIF) the specified mission, instrument &amp; version
-for all the &#8220;good&#8221; (CAL_QUAL = 0) entries</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>telescope</strong> &#8211; caldb standard telescope name</li>
-<li><strong>mission</strong> &#8211; caldb standard mission name</li>
-<li><strong>version</strong> &#8211; version of the cif (should be in YYYYMMDD format except for chandra in form of 4.7.3)</li>
-<li><strong>outdir</strong> &#8211; output directory to hold the html version of the cif</li>
-<li><strong>templatedir</strong> &#8211; directory where the jinja templates are located</li>
-<li><strong>clobber</strong> &#8211; True to overwrite an existing html cif file</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">status (0 if no errors)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="pycaldb.mk_cifname">
-<code class="descclassname">pycaldb.</code><code class="descname">mk_cifname</code><span class="sig-paren">(</span><em>telescope</em>, <em>instrument</em>, <em>version=''</em>, <em>caldb='http://heasarc.gsfc.nasa.gov/FTP/caldb'</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.mk_cifname" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates fully specified calibration index file name</p>
-<p>Creates fully specified calibration index file name given telescope, instrument, and
-(optionally) caldb index file version (caldb.indx20170405) and caldb top level directory path or url</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>telescope</strong> &#8211; CALDB name of telescope</li>
-<li><strong>instrument</strong> &#8211; CALDB name of the instrument on telescope</li>
-<li><strong>version</strong> &#8211; version of the index file to use (optional; for example caldb.indx20170405)</li>
-<li><strong>caldb</strong> &#8211; caldb top level directory path or url</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">name of cif (with full directory path or full URL)</p>
 </td>
 </tr>
 </tbody>
@@ -410,8 +660,8 @@ for all the &#8220;good&#8221; (CAL_QUAL = 0) entries</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>bound</strong> &#8211; caldb boundary value string</li>
-<li><strong>chatter</strong> &#8211; level of verbosity</li>
+<li><strong>bound</strong> – caldb boundary value string</li>
+<li><strong>chatter</strong> – level of verbosity</li>
 </ul>
 </td>
 </tr>
@@ -434,17 +684,17 @@ calibration boundary etc</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>telescope</strong> &#8211; name of telescope/mission</li>
-<li><strong>instrument</strong> &#8211; name of instrument on telescope</li>
-<li><strong>cal_cnam</strong> &#8211; caldb codename of files</li>
-<li><strong>detnam</strong> &#8211; detector name (if needed)</li>
-<li><strong>cal_cbd</strong> &#8211; calibration file boundary values</li>
-<li><strong>filter</strong> &#8211; Name of filter for instrument (if needed)</li>
-<li><strong>cal_vsd</strong> &#8211; Validity start date</li>
-<li><strong>cal_vst</strong> &#8211; Validity start time</li>
-<li><strong>cal_qual</strong> &#8211; Quality flag for files</li>
-<li><strong>caldb</strong> &#8211; Main caldb directory</li>
-<li><strong>caldbver</strong> &#8211; Version of calibration file (usually of form YYYYMMDD)</li>
+<li><strong>telescope</strong> – name of telescope/mission</li>
+<li><strong>instrument</strong> – name of instrument on telescope</li>
+<li><strong>cal_cnam</strong> – caldb codename of files</li>
+<li><strong>detnam</strong> – detector name (if needed)</li>
+<li><strong>cal_cbd</strong> – calibration file boundary values</li>
+<li><strong>filter</strong> – Name of filter for instrument (if needed)</li>
+<li><strong>cal_vsd</strong> – Validity start date</li>
+<li><strong>cal_vst</strong> – Validity start time</li>
+<li><strong>cal_qual</strong> – Quality flag for files</li>
+<li><strong>caldb</strong> – Main caldb directory</li>
+<li><strong>caldbver</strong> – Version of calibration file (usually of form YYYYMMDD)</li>
 </ul>
 </td>
 </tr>
@@ -456,10 +706,63 @@ calibration boundary etc</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pycaldb.read_cif">
+<code class="descclassname">pycaldb.</code><code class="descname">read_cif</code><span class="sig-paren">(</span><em>telescope=None</em>, <em>instrument=None</em>, <em>version=None</em>, <em>cifname=None</em>, <em>caldb=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.read_cif" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert caldb.indx file to FITS HDU</p>
+<p>reads the caldb.indx file for a given telescope and instrument, for either a local caldb installation
+or a remote installation access via http or ftp</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>telescope</strong> – telescope specification for cif</li>
+<li><strong>instrument</strong> – instrument specification for telescope</li>
+<li><strong>version</strong> – version of cif to use (for example caldb.indx20160502)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">returns a FITS hdu representation of the caldb.indx file</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycaldb.read_update_notice">
+<code class="descclassname">pycaldb.</code><code class="descname">read_update_notice</code><span class="sig-paren">(</span><em>telescope</em>, <em>updatedate</em>, <em>notice_dir='/Users/corcoran/Desktop/caldb_updates'</em>, <em>chatter=0</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.read_update_notice" title="Permalink to this definition">¶</a></dt>
+<dd><p>reads the update notice</p>
+<p>reads the update notification e-mail text file and returns a dictionary of telescope, instrument,
+and list of files for the update.  See</p>
+<p>“Automated Delivery of Calibration Data to the CALDB”
+(<a class="reference external" href="https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/docs/memos/cal_gen_2003_001/cal_gen_2003_001.html">https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/docs/memos/cal_gen_2003_001/cal_gen_2003_001.html</a>)
+for specification on the format of the update notification e-mail</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>telesope</strong> – caldb telescope name</li>
+<li><strong>updatedate</strong> – date of update in YYYYMMDD format as specified in the subject of the e-mail; not to be confused with the update VERSION, also in YYYYMMDD format.  The update VERSION gives the version number of the individual caldb.indx file describing the index, for example the string 20150304 in caldb.indx20150304</li>
+<li><strong>notice_dir</strong> – directory where the notification e-mail is located</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">update_dict, a dictionary of instruments and files for the specified update</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>VERSIONS
+0.1 MFC 20170614 Initial Version</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="pycaldb.sync_caldbweb">
-<code class="descclassname">pycaldb.</code><code class="descname">sync_caldbweb</code><span class="sig-paren">(</span><em>DoCopy=False</em>, <em>user='mcorcora'</em>, <em>host='heasarcdev'</em>, <em>mission=''</em>, <em>version=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.sync_caldbweb" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycaldb.</code><code class="descname">sync_caldbweb</code><span class="sig-paren">(</span><em>mission</em>, <em>instrument</em>, <em>version</em>, <em>DoCopy=False</em>, <em>user='mcorcora'</em>, <em>host='heasarcdev'</em>, <em>htmlcaldbdev='/www/htdocs/docs/heasarc/caldb/data'</em>, <em>htmlcaldbprod='/www.prod/htdocs/docs/heasarc/caldb/data'</em>, <em>prompt=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pycaldb.sync_caldbweb" title="Permalink to this definition">¶</a></dt>
 <dd><p>Syncs the caldb website</p>
-<p>After editing/updating appropriate html files on the development side (caldbwww), this routine moves 
+<p>After editing/updating appropriate html files on the development side (caldbwww), this routine moves
 the files to the public side (caldbwwwprod) and also generates the cadlb and heasarc rss feeds</p>
 <p>The html files that need to be updated are:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">caldb_wotsnew</span><span class="o">.</span><span class="n">html</span>
@@ -480,17 +783,21 @@ the files to the public side (caldbwwwprod) and also generates the cadlb and hea
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>mission</strong> &#8211; mission name (aka TELESCOP)</li>
-<li><strong>version</strong> &#8211; version of caldb (usually of form YYYYMMDD)</li>
-<li><strong>DoCopy</strong> &#8211; if False just print the cmds that will be executed when DoCopy = True</li>
+<li><strong>mission</strong> – mission name (aka TELESCOP)</li>
+<li><strong>instrument</strong> – CALDB-standard instrument name</li>
+<li><strong>version</strong> – version of caldb (usually of form YYYYMMDD, except for Chandra)</li>
+<li><strong>DoCopy</strong> – if False just print the cmds that will be executed when DoCopy = True</li>
+<li><strong>Prompt</strong> – if True will prompt the user to continue if DoCopy</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">returns a list of error messages in case of partially successful copies, or -1 if user quits</p>
 </td>
 </tr>
 </tbody>
 </table>
+<p>CHANGES
+20170614 added Prompt keyword if DoCopy chose; also fixed file list for nustar, added instrument parameter</p>
 </dd></dl>
 
 </div>
@@ -515,9 +822,9 @@ the files to the public side (caldbwwwprod) and also generates the cadlb and hea
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html#the-old-way">The old way:</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction: Developing pycaldb documentation with Sphinx</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Updating the CALDB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pycaldb_mkhtml.html">Creating CIF summary web pages using Pycaldb</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Pycaldb List of functions</a></li>
 </ul>
 
@@ -525,7 +832,7 @@ the files to the public side (caldbwwwprod) and also generates the cadlb and hea
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="tutorial.html" title="previous chapter">Tutorial</a></li>
+      <li>Previous: <a href="pycaldb_mkhtml.html" title="previous chapter">How to Create an HTML Summary of a caldb.indx file</a></li>
   </ul></li>
 </ul>
 </div>
@@ -547,7 +854,7 @@ the files to the public side (caldbwwwprod) and also generates the cadlb and hea
       &copy;2017, M. F. Corcoran.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
       
       |

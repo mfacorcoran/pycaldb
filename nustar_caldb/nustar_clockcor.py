@@ -14,7 +14,7 @@ def update_clockcor(version, file,
     @param file: name of the new clock correction file (nuCclock20100101v043.fits)
     @param url: url where the clock correction file is located
     @param caldb: location of the local CALDB
-    @return:
+    @return: creates a new caldb.indx file with version =  version
     """
     import urllib
     import subprocess
@@ -226,7 +226,13 @@ if __name__ == "__main__":
     # nucckeys = nucc.keys()
     # for i in range(len(nucc[nucckeys[0]])):
     #     print nucc[nucckeys[0]][i], nucc[nucckeys[1]][i]
-    update_clockcor('20170503', 'nuCclock20100101v071.fits', caldb=caldb)
+    update_clockcor('20180126', 'nuCclock20100101v078.fits', caldb=caldb)
+    #update_clockcor('20171204', 'nuCclock20100101v076.fits', caldb=caldb)
+    #update_clockcor('20171002', 'nuCclock20100101v075.fits', caldb=caldb)
+    #update_clockcor('20170817', 'nuCclock20100101v074.fits', caldb=caldb)
+    #update_clockcor('20170720', 'nuCclock20100101v073.fits', caldb=caldb)
+    #update_clockcor('20170614', 'nuCclock20100101v072.fits', caldb=caldb)
+    #update_clockcor('20170503', 'nuCclock20100101v071.fits', caldb=caldb)
     #update_clockcor('20170419','nuCclock20100101v070.fits',caldb=caldb)
     #update_clockcor('20170222','nuCclock20100101v069.fits',caldb=caldb)
     #update_clockcor('2017-01-20','nuCclock20100101v068.fits',caldb=caldb)

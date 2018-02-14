@@ -1,89 +1,27 @@
 def patch_nustar_caldb(version,
                        nupatchserver = "hassif.caltech.edu",
                        nupatchworkdir = "/pub/nustar/pipeline",
-                       caldb = "/FTP/caldb",
                        caldbstage = "/FTP/caldb/staging",
                        ck_file_exists='True'):
     """
-    CALLING SEQUENCE:
+    This function creates a caldb_update.txt message as described in
+    https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/docs/memos/cal_gen_2003_001/cal_gen_2003_001.html
 
-    patch_nustar_caldb(version,
-                       nupatchserver = "hassif.caltech.edu",
-                       nupatchworkdir = "/pub/nustar/pipeline",
-                       caldb = "/FTP/caldb",
-                       caldbstage = "/FTP/caldb/staging")
+    Once this update file is created, the caldbmgr needs to run
+    /FTP/caldb/local/scripts/DATA_DELIVERIES/nustar_caldbupdate.csh
 
-    The following is from /web_chroot/FTP/.caldb_staging/data/nustar/README_rev1.txt
+    in order to complete the update.
 
-    20131028
-    ========
+    See /web_chroot/FTP/.caldb_staging/data/nustar/README_rev1.txt for more detailed information on how such updates
+    were done manually.
 
-    installing patch version 20131007 - STEPS:
-
-    a) first created a full version of the existing nustar caldb in the
-    /FTP/caldb/data/nustar in the nustar/versions are via rsync:
-
-       [caldbmgr]: pwd
-       /web_chroot/FTP/.caldb_staging/data/nustar/versions
-       [caldbmgr]: mkdir 20131007
-       [caldbmgr]: cd 20131007
-       [caldbmgr]: rsync -avz 20130509/CALDB/data/nustar/fpm/bcf .
-       [caldbmgr]: rsync -avz 20130509/CALDB/data/nustar/fpm/cpf .
-       [caldbmgr]: rsync -avz 20130509/CALDB/data/nustar/fpm/index .
-
-    b) wget the patch (using the location given in Brian Grefenstette's e-mail):
-
-       [caldbmgr]: cd /FTP/caldb/staging/data/nustar/versions/20131007/
-       [caldbmgr]: wget ftp://hassif.srl.caltech.edu/pub/nustar/pipeline/20131007/NUSTARCALDB_patch20131007.tgz
-
-
-    c) Untar the patch:
-
-      [caldbmgr]: pwd
-      /web_chroot/FTP/.caldb_staging/data/nustar/versions/20131007
-
-       [caldbmgr]: ls
-       fpm  NUSTARCALDB_patch20131007.tgz
-       [caldbmgr]: tar -zxvf NUSTARCALDB_patch20131007.tgz
-         fpm/caldb.indx
-         fpm/index/caldb.indx20131007
-         fpm/bcf/arf/nuA20100101v006.arf
-         fpm/bcf/arf/nuB20100101v006.arf
-         ... stuff deleted ...
-         fpm/bcf/instrument/nuAhkrange05_20100101v005.fits
-         fpm/bcf/instrument/nuAhkrange04_20100101v005.fits
-         fpm/bcf/instrument/nuAhkrange03_20100101v005.fits
-         fpm/bcf/instrument/nuAhkrange02_20100101v005.fits
-
-    c) then link the (now full) 20131007 version to staging/data/nustar/fpm:
-
-       [caldbmgr]: pwd
-            /web_chroot/FTP/.caldb_staging/data/nustar
-       [caldbmgr]: ln -nfs versions/20131007/fpm .
-       [caldbmgr]: ls -l
-            total 12
-            lrwxrwxrwx 1 caldbmgr caldb         21 Oct 28 15:31 fpm -> versions/20131007/fpm
-            -rw-r--r-- 1 caldbmgr caldb       1909 Oct 28 15:27 README.txt
-            drwxr-xr-x 2 caldbmgr caldb       4096 Oct 28 15:09 to_ingest
-            drwxr-xr-x 7 caldbmgr caldb_stage 4096 Oct 28 15:14 versions
-
-    d) from Brian's e-mail list of new files in the patch, created caldb_update_nustar_20131007.txt in the "to_ingest" subdirectory:
-
-         [caldbmgr]: pwd
-             /web_chroot/FTP/.caldb_staging/data/nustar/to_ingest
-
-         [caldbmgr]: ls -l
-             total 16
-             -rw-r--r-- 1 caldbmgr caldb 8839 Aug 14 11:27 caldb_update_nustar_20130509.txt
-             -rw-r--r-- 1 caldbmgr caldb 1636 Oct 28 15:09 caldb_update_nustar_20131007.txt
-             lrwxrwxrwx 1 caldbmgr caldb   32 Aug 14 11:02 caldb_update.txt -> caldb_update_nustar_20130509.txt
-
-    e) to ingest the data (as in other missions) run /web_chroot/FTP/caldb/local/scripts/DATA_DELIVERIES/nustar_caldbupdate.csh
+    After this function runs successfully, then, to ingest the data (as in other missions),
+    manually run /FTP/caldb/local/scripts/DATA_DELIVERIES/nustar_caldbupdate.csh
 
     :param version: string in 'YYYYMMDD' format, from nustar patch notification (from BG)
     :param nupatchworkdir: URL of directory where patch tar file is located, from BG
-    :param caldb: location where the full NuSTAR caldb is stored
     :param caldbstage: location of caldb staging area
+    :param ck_file_exists: Checks that the new file is in the new caldb.indx file (Default =  'True')
     :return:
     """
 
@@ -92,7 +30,7 @@ def patch_nustar_caldb(version,
     import tarfile
     import datetime
     import shutil
-    from pycaldb import ck_file_existence
+    from heasarc.pycaldb.pycaldb import ck_file_existence
     from astropy.io import fits as pyfits
 
     #
@@ -145,7 +83,12 @@ def patch_nustar_caldb(version,
     print('\nExtracting {0} to {1}'.format(patchfile, patchinstalldir))
     ptf = tarfile.open(patchinstalldir+'/'+patchfile)
     ptf.extractall(patchinstalldir)
-    newfiles = ptf.getnames()
+    tarlist = ptf.getnames()
+    print "Tarlist:"
+    print tarlist
+    newfiles = [x for x in tarlist if os.path.isfile(x)]
+    print "Newfiles:"
+    print newfiles
     #
     # Link the updated version to staging/data/nustar/fpm:
     #
@@ -181,10 +124,17 @@ def patch_nustar_caldb(version,
                'caldbindexfile=caldb.indx'+version.strip()+'\n\n' \
                'newfile\n'
     for f in newfiles: # get file list from patch tarfile
-        name=f.split('fpm/')[1]
+        try:
+            name=f.split('fpm/')[1]
+        except IndexError, errmsg:
+            print "Could not find a file in tarfile entry {0} ({1})".format(f, errmsg)
         if not 'caldb.indx' in name.strip().lower(): # don't include caldb.indx files in ingest note
             update_txt=update_txt+name+"\n"
     update_txt=update_txt+'endnewfile\n'
+    to_ingestdir= os.path.join(caldbstage,'data/nustar/to_ingest')
+    if not os.path.exists(to_ingestdir):
+        print "Creating {0}".format(to_ingestdir)
+        os.makedirs(to_ingestdir)
     ingestfilename = 'caldb_update_nustar_'+version.strip()+'.txt'
     ingestfile = caldbstage+'/data/nustar/to_ingest/'+ingestfilename
     print('Creating {0}'.format(ingestfile))
@@ -208,7 +158,7 @@ def patch_nustar_caldb(version,
         print "Problem creating symbolic link to "+updatefile+"; Returning"
         return
     os.chdir(curdir)
-
+    print "To complete the FPM update, run /FTP/caldb/local/scripts/DATA_DELIVERIES/nustar_caldbupdate.csh"
     return
 
 
@@ -217,6 +167,8 @@ if __name__ == "__main__":
     #
     # for sshfs mounted directories
     #
-    caldb="/fuse/caldb"
-    stage = '/fuse/caldb_stage'
-    patch_nustar_caldb('20160606', caldb=caldb, caldbstage=stage, ck_file_exists=False)
+    # caldb="/fuse/caldb"
+    # stage = 'caldb_stage'
+    caldb = "/web_chroot/FTP/caldb"
+    stage = "/web_chroot/FTP/caldb/staging"
+    patch_nustar_caldb('20170727', caldb=caldb, caldbstage=stage, ck_file_exists=False)

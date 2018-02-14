@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Introduction &#8212; pycaldb 1.0 documentation</title>
-    
+    <title>Introduction: Developing pycaldb Documents using Sphinx &#8212; pycaldb 1.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -24,26 +21,80 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tutorial" href="tutorial.html" />
-    <link rel="prev" title="Welcome to pycaldb’s documentation!" href="index.html" />
+    <link rel="next" title="How to Update the Caldb" href="tutorial.html" />
+    <link rel="prev" title="pycaldb: Documentation" href="index.html" />
    
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
   </head>
-  <body role="document">  
+  <body>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p>This is the introduction</p>
+  <div class="section" id="introduction-developing-pycaldb-documents-using-sphinx">
+<h1>Introduction: Developing pycaldb Documents using Sphinx<a class="headerlink" href="#introduction-developing-pycaldb-documents-using-sphinx" title="Permalink to this headline">¶</a></h1>
+<p>Some general notes about generating the pycaldb documentation using Sphinx and automodule (it can be a bit tricky specifying the path and module name in order to get automodule to actually find the module to automatically include the module in the list of functions document).  This information is useful for generating documentation for other packages as well.</p>
+<p>Sphinx can be run either from within PyCharm (using a Python Docs/Sphinx Task configuration, which can be accessed
+from the “Edit Configurations” menu in PyCharm) or from the command line.</p>
+<div class="section" id="using-pycharm">
+<h2>Using Pycharm<a class="headerlink" href="#using-pycharm" title="Permalink to this headline">¶</a></h2>
+<p>In PyCharm, open the “Edit Configuration” menu to edit a configure</p>
+<img alt="_images/editconfig.png" class="align-center" src="_images/editconfig.png" />
+<p>Then click the plus (+) sign to add a new configuration for a Python Doc/Sphinx Task:</p>
+<img alt="_images/newsphinxconfig.png" class="align-center" src="_images/newsphinxconfig.png" />
+<p>The filled out Sphinx Task configuration for pycaldb looks like</p>
+<img alt="_images/pycaldbsphinxconfig.png" class="align-center" src="_images/pycaldbsphinxconfig.png" />
+<p>where</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Command</span></code> - set to “html” for html output</li>
+<li><code class="docutils literal"><span class="pre">Input</span></code> - choose the directory where the .rst files are located (as set up when you do a “Sphinx Quickstart”, which you can find under the PyCharm “Tools” menu</li>
+<li>the output should be a subdirectory of _build (for example _build/html to put the html files under the html directory)</li>
+<li><strong>IMPORTANT</strong> - add the appropriate python module path to PYTHONPATH so “automodule” can find the python module.</li>
+</ul>
+<dl class="docutils">
+<dt>For pycaldb, set:</dt>
+<dd><ul class="first last simple">
+<li><code class="docutils literal"><span class="pre">PYTHONPATH</span></code> to /software/github:/software/github/heasarc:/software/heasoft/headas/setup/lib/python</li>
+</ul>
+</dd>
+</dl>
+<p>because <code class="docutils literal"><span class="pre">/software/github</span></code> needed to allow import of <code class="docutils literal"><span class="pre">heasarc.utils</span></code>; <code class="docutils literal"><span class="pre">/software/github/heasarc</span></code> needed to allow import of pycaldb module; and <code class="docutils literal"><span class="pre">/software/heasoft/headas/setup/lib/python</span></code> needed to allow import of pyxspec (actually the <code class="docutils literal"><span class="pre">xspec</span></code> module) from HEASOFT</p>
+<blockquote>
+<div><ul>
+<li><p class="first">then set <code class="docutils literal"><span class="pre">automodule</span></code> as</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">automodule</span><span class="p">::</span> <span class="n">pycaldb</span>
+    <span class="p">:</span><span class="n">members</span><span class="p">:</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div></blockquote>
+<p>so that <code class="docutils literal"><span class="pre">sphinx</span></code> will look for the <code class="docutils literal"><span class="pre">pycaldb</span></code> module directory in the <code class="docutils literal"><span class="pre">/software/github/heasarc/</span></code> directory (as specified in the <code class="docutils literal"><span class="pre">PYTHONPATH</span></code>)
+and load the file pycaldb.py within the <code class="docutils literal"><span class="pre">pycaldb</span></code> directory</p>
+<p><strong>NOTE</strong> the above assumes that the <code class="docutils literal"><span class="pre">heasarc/pycaldb/__init__.py</span></code> file is empty (no imports are included in the file); or at least the above works if that init file is empty.  There are complex interactions between the PYTHONPATH and the init file that I don’t quite understand; I need more investigation of how the <code class="docutils literal"><span class="pre">__init__.py</span></code> file is really used…</p>
+</div>
+<div class="section" id="using-the-command-line">
+<h2>Using the Command Line<a class="headerlink" href="#using-the-command-line" title="Permalink to this headline">¶</a></h2>
+<p>Sphinx Quickstart creates a Makefile in the doc directory for you to make compilation easier.  The command to create the html form of the documentation is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">cd</span> <span class="o">/</span><span class="n">software</span><span class="o">/</span><span class="n">github</span><span class="o">/</span><span class="n">heasarc</span><span class="o">/</span><span class="n">pycaldb</span><span class="o">/</span><span class="n">doc</span>
+<span class="o">%</span> <span class="n">make</span> <span class="n">html</span>
+</pre></div>
+</div>
+<p>To get automodule to work you need to edit the conf.py file and make sure the python package is added to the path.  For pycaldb uncomment the import os, import sys and the sys.path.insert lines like so:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s1">&#39;/software/github/heasarc&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>and insert the appropriate path to the module.</p>
+</div>
 </div>
 
 
@@ -66,9 +117,13 @@
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html#the-old-way">The old way:</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction: Developing pycaldb documentation with Sphinx</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-pycharm">Using Pycharm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-command-line">Using the Command Line</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Updating the CALDB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pycaldb_mkhtml.html">Creating CIF summary web pages using Pycaldb</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pycaldb_functions.html">Pycaldb List of functions</a></li>
 </ul>
 
@@ -76,8 +131,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">Welcome to pycaldb&#8217;s documentation!</a></li>
-      <li>Next: <a href="tutorial.html" title="next chapter">Tutorial</a></li>
+      <li>Previous: <a href="index.html" title="previous chapter">pycaldb: Documentation</a></li>
+      <li>Next: <a href="tutorial.html" title="next chapter">How to Update the Caldb</a></li>
   </ul></li>
 </ul>
 </div>
@@ -99,7 +154,7 @@
       &copy;2017, M. F. Corcoran.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
       
       |

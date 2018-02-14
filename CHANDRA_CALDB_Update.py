@@ -1,3 +1,6 @@
+import heasarc as h
+import os
+
 def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
                          ChandraCaldbDir = "/pub/arcftp/caldb",
                          ChandraCaldbHost = "cda.harvard.edu",
@@ -11,7 +14,6 @@ def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
     """
 
     import tarfile
-    import os
     import shutil
     import requests
     from bs4 import BeautifulSoup
@@ -118,4 +120,18 @@ def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
     os.symlink(src, dst)
     
     return status
- 
+
+def chandra_html_summaries(outroot = '/www/htdocs/docs/heasarc/caldb/data/chandra'):
+    ccal = h.pc.Caldb(telescope='chandra')
+    murl = 'http://cxc.harvard.edu'
+    instruments = ccal.get_instruments()
+    for inst in instruments:
+        ccal.set_instrument(inst)
+        ver = ccal.get_versions()[-1] # get last item in array, which should be the latest version of the cif
+        ccal.set_cif(ver)
+        outdir = os.path.join(outroot,inst,'index')
+        print 'Writing to {outd}'.format(outd=outdir)
+        ccal.html_summary(missionurl=murl, outdir=outdir)
+
+if __name__ == "__main__":
+    chandra_caldb_update('4.7.7')

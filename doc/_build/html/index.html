@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Welcome to pycaldb’s documentation! &#8212; pycaldb 1.0 documentation</title>
-    
+    <title>pycaldb: Documentation &#8212; pycaldb 1.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -24,34 +21,58 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Introduction" href="introduction.html" />
+    <link rel="next" title="Introduction: Developing pycaldb Documents using Sphinx" href="introduction.html" />
    
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
   </head>
-  <body role="document">  
+  <body>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-pycaldb-s-documentation">
-<h1>Welcome to pycaldb&#8217;s documentation!<a class="headerlink" href="#welcome-to-pycaldb-s-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="pycaldb-documentation">
+<h1>pycaldb: Documentation<a class="headerlink" href="#pycaldb-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html#the-old-way">The old way:</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction: Developing pycaldb documentation with Sphinx</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#using-pycharm">Using Pycharm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#using-the-command-line">Using the Command Line</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Updating the CALDB</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#the-old-way">The Old Way</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#the-new-way">The New Way</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial.html#nustar">NuSTAR</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pycaldb_mkhtml.html">Creating CIF summary web pages using Pycaldb</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pycaldb_functions.html">Pycaldb List of functions</a></li>
 </ul>
 </div>
 <p>Pycaldb is a python module which can be used to access, check and perform other useful things on the HEASARC
 Calibration DataBase (CalDB).</p>
+<p>it should be imported as:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">heasarc</span> <span class="k">import</span> <span class="o">*</span>
+<span class="n">importing</span> <span class="n">pycaldb</span> <span class="k">as</span> <span class="n">pc</span>
+<span class="n">importing</span> <span class="n">chandra_caldb_update</span>
+<span class="n">importing</span> <span class="n">nustar_clockcor</span> <span class="k">as</span> <span class="n">nuc</span>
+<span class="n">importing</span> <span class="n">nustar_caldb_patch</span> <span class="k">as</span> <span class="n">nup</span>
+</pre></div>
+</div>
+<p>Note that for some reason (12/15/17) compiling the doc with <code class="docutils literal"><span class="pre">sphinx</span></code> in <code class="docutils literal"><span class="pre">PyCharm</span></code> doesn’t seem to be working.  So you can create the doc from the command line by:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">cd</span> <span class="o">/</span><span class="n">software</span><span class="o">/</span><span class="n">github</span><span class="o">/</span><span class="n">heasarc</span><span class="o">/</span><span class="n">pycaldb</span><span class="o">/</span><span class="n">doc</span>
+<span class="o">%</span> <span class="n">make</span> <span class="n">html</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
@@ -82,9 +103,9 @@ Calibration DataBase (CalDB).</p>
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html#the-old-way">The old way:</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction: Developing pycaldb documentation with Sphinx</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Updating the CALDB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pycaldb_mkhtml.html">Creating CIF summary web pages using Pycaldb</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pycaldb_functions.html">Pycaldb List of functions</a></li>
 </ul>
 
@@ -92,7 +113,7 @@ Calibration DataBase (CalDB).</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="#">Documentation overview</a><ul>
-      <li>Next: <a href="introduction.html" title="next chapter">Introduction</a></li>
+      <li>Next: <a href="introduction.html" title="next chapter">Introduction: Developing pycaldb Documents using Sphinx</a></li>
   </ul></li>
 </ul>
 </div>
@@ -114,7 +135,7 @@ Calibration DataBase (CalDB).</p>
       &copy;2017, M. F. Corcoran.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
       
       |

@@ -62,3 +62,17 @@ target/
 *.xml
 
 *.xml
+
+*.ipynb
+
+deprecated/cif_summary.py
+
+deprecated/cif2html.py
+
+deprecated/tmp/caldb.indx20160609
+
+doc/_build/.buildinfo
+
+*.doctree
+
+*.doctree

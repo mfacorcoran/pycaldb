@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Tutorial &#8212; pycaldb 1.0 documentation</title>
-    
+    <title>How to Update the Caldb &#8212; pycaldb 1.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -24,29 +21,27 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="List of pycaldb Functions" href="pycaldb_functions.html" />
-    <link rel="prev" title="Introduction" href="introduction.html" />
+    <link rel="next" title="How to Create an HTML Summary of a caldb.indx file" href="pycaldb_mkhtml.html" />
+    <link rel="prev" title="Introduction: Developing pycaldb Documents using Sphinx" href="introduction.html" />
    
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
   </head>
-  <body role="document">  
+  <body>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="tutorial">
-<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
-<p>How to Update the Caldb (Using Swift as an example)</p>
-</div>
+  <div class="section" id="how-to-update-the-caldb">
+<h1>How to Update the Caldb<a class="headerlink" href="#how-to-update-the-caldb" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="the-old-way">
-<h1>The old way:<a class="headerlink" href="#the-old-way" title="Permalink to this headline">¶</a></h1>
+<h2>The Old Way<a class="headerlink" href="#the-old-way" title="Permalink to this headline">¶</a></h2>
 <p>(Example: an update of the Swift Caldb for a new clock correction file)</p>
 <p>Start with a update notification e-mail which has a subject line of the format <code class="docutils literal"><span class="pre">caldb</span> <span class="pre">update</span> <span class="pre">&lt;mission&gt;</span> <span class="pre">&lt;version&gt;</span></code> where <code class="docutils literal"><span class="pre">&lt;mission&gt;</span></code>
 is the mission name (the value of the TELESCOP keyword in the caldb.indx file) and <code class="docutils literal"><span class="pre">&lt;version&gt;</span></code> is the update date (in <code class="docutils literal"><span class="pre">YYYYMMDD</span></code> format).</p>
@@ -90,7 +85,74 @@ that need to be updated are:</p>
 </pre></div>
 </div>
 <p>6. Sync the web pages from the develop side to the public side using <code class="docutils literal"><span class="pre">sync_caldbweb()</span></code>.  <code class="docutils literal"><span class="pre">sync_caldbweb()</span></code> also
-creates the rss feeds and the &#8220;What&#8217;s New&#8221; items for the caldb and HEASARC home pages, on both the public and develop side.</p>
+creates the rss feeds and the “What’s New” items for the caldb and HEASARC home pages, on both the public and develop side.</p>
+</div>
+<div class="section" id="the-new-way">
+<h2>The New Way<a class="headerlink" href="#the-new-way" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="nustar">
+<h3>NuSTAR<a class="headerlink" href="#nustar" title="Permalink to this headline">¶</a></h3>
+<p>This section describes how to update the caldb using the pycaldb modules, using the <code class="docutils literal"><span class="pre">NuSTAR</span></code> clock correction file update as an example.</p>
+<ol class="arabic">
+<li><p class="first">the <code class="docutils literal"><span class="pre">NuSTAR</span></code> team will send out a notification that a new clock correction file is available. Once that’s received, from the <code class="docutils literal"><span class="pre">caldbmgr</span></code> account, run <code class="docutils literal"><span class="pre">update_clockcor</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">update_clockcor</span><span class="p">(</span><span class="s1">&#39;20170614&#39;</span><span class="p">,</span> <span class="s1">&#39;nuCclock20100101v072.fits&#39;</span><span class="p">,</span> <span class="n">caldb</span><span class="o">=</span><span class="n">caldb</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>I’ve been updating the following lines in <code class="docutils literal"><span class="pre">nustar_clockcor.py</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">caldb</span> <span class="o">=</span> <span class="s1">&#39;/web_chroot/FTP/caldb&#39;</span> <span class="c1"># appropriate for running as caldbmgr on heasarcdev</span>
+    <span class="c1"># nucc = nustar_get_clockcor()</span>
+    <span class="c1"># nucckeys = nucc.keys()</span>
+    <span class="c1"># for i in range(len(nucc[nucckeys[0]])):</span>
+    <span class="c1">#     print nucc[nucckeys[0]][i], nucc[nucckeys[1]][i]</span>
+    <span class="n">update_clockcor</span><span class="p">(</span><span class="s1">&#39;20170614&#39;</span><span class="p">,</span> <span class="s1">&#39;nuCclock20100101v072.fits&#39;</span><span class="p">,</span> <span class="n">caldb</span><span class="o">=</span><span class="n">caldb</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>then running via:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">python</span> <span class="n">nustar_clockcor</span>
+</pre></div>
+</div>
+<p>1b. <strong>A better way to do the clock correction update</strong>:</p>
+<p>Create a new python script in <code class="docutils literal"><span class="pre">/Home/lhea3/caldbmgr/update_nustar_clockcor</span></code> containing the following:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">heasarcdev</span><span class="o">-</span><span class="n">sl</span> <span class="p">[</span><span class="mi">32</span><span class="p">]</span> <span class="p">[</span><span class="n">caldbmgr</span><span class="p">]:</span> <span class="n">more</span> <span class="n">update_clockcor20170720</span><span class="o">.</span><span class="n">py</span>
+    <span class="c1">#!/usr/bin/env python</span>
+    <span class="kn">from</span> <span class="nn">heasarc.pycaldb</span> <span class="k">import</span> <span class="n">nustar_caldb</span> <span class="k">as</span> <span class="n">nc</span>
+    <span class="n">caldb</span> <span class="o">=</span> <span class="s1">&#39;/web_chroot/FTP/caldb&#39;</span>
+    <span class="n">nc</span><span class="o">.</span><span class="n">update_clockcor</span><span class="p">(</span><span class="s1">&#39;20170720&#39;</span><span class="p">,</span> <span class="s1">&#39;nuCclock20100101v073.fits&#39;</span><span class="p">,</span> <span class="n">caldb</span><span class="o">=</span><span class="n">caldb</span><span class="p">)</span>
+    <span class="c1">#END</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>make sure the file is executable, then execute it::</dt>
+<dd>% ./update_clockcor20170720.py &gt; logs/update_clockcor20170720.log</dd>
+</dl>
+<p>This downloads the new clock correction file, adds it to the <code class="docutils literal"><span class="pre">CALDB</span></code> then creates the tar files and soft link to <code class="docutils literal"><span class="pre">caldb.indx</span></code></p>
+<ol class="arabic" start="2">
+<li><p class="first">The onerous part is updating all the web pages on the development side (/www/htdocs).  To do this:</p>
+<blockquote>
+<div><ul class="simple">
+<li>edit the CALDB what’s new, rss feed and supported missions pages</li>
+<li>update <a class="reference external" href="http://heasarcdev.gsfc.nas.gov/docs/heasarc/caldb/nustar/nustar_caldb.html">nustar_caldb.html</a></li>
+<li>Create /www/htdocs/docs/heasarc/caldb/nustar/docs/release*.txt file for current release</li>
+<li>make a new entry in the <a class="reference external" href="http://heasarcdev.gsfc.nasa.gov/docs/heasarc/caldb/nustar/docs/nustar_caldbhistory.html">nustar_caldbhistory.html</a> table</li>
+<li>add rss item to /www/htdocs/docs/nustar/news/nustar.rss (use RESPONSIBLE_PARTY = HEASARC)</li>
+<li>add rss item to  astro-update.rss (use RESPONSIBLE_PARTY = NuSTAR for astroupdate.rss)</li>
+<li>update the astro-update <cite>inc/associated_data.html</cite> table</li>
+<li>Change the dates on the nustar caldb tar files</li>
+<li>Create the html version of the caldb.indx file using the pycaldb function <cite>make_missioncif_page(‘NuSTAR’,’FPM’,‘20170614’)</cite> (for example).</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">Once the web updates on the develop side have been done, then run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sync_caldbweb</span><span class="p">(</span><span class="n">mission</span><span class="p">,</span><span class="n">instrument</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">DoCopy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>Set <cite>DoCopy=False</cite> to see the copy commands that will be run without actually executing the commands; <cite>DoCopy=True</cite> will actually run the commands. <cite>sync_caldbweb</cite> also updates the  HEASARC rss news feeds.</p>
+</div>
+</div>
 </div>
 
 
@@ -113,9 +175,16 @@ creates the rss feeds and the &#8220;What&#8217;s New&#8221; items for the caldb
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#the-old-way">The old way:</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction: Developing pycaldb documentation with Sphinx</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Updating the CALDB</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-old-way">The Old Way</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-new-way">The New Way</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#nustar">NuSTAR</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pycaldb_mkhtml.html">Creating CIF summary web pages using Pycaldb</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pycaldb_functions.html">Pycaldb List of functions</a></li>
 </ul>
 
@@ -123,8 +192,8 @@ creates the rss feeds and the &#8220;What&#8217;s New&#8221; items for the caldb
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="introduction.html" title="previous chapter">Introduction</a></li>
-      <li>Next: <a href="pycaldb_functions.html" title="next chapter">List of pycaldb Functions</a></li>
+      <li>Previous: <a href="introduction.html" title="previous chapter">Introduction: Developing pycaldb Documents using Sphinx</a></li>
+      <li>Next: <a href="pycaldb_mkhtml.html" title="next chapter">How to Create an HTML Summary of a caldb.indx file</a></li>
   </ul></li>
 </ul>
 </div>
@@ -146,7 +215,7 @@ creates the rss feeds and the &#8220;What&#8217;s New&#8221; items for the caldb
       &copy;2017, M. F. Corcoran.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
       
       |
