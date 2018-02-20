@@ -514,7 +514,7 @@ class Caldb(object):
             print "    Extension #{0} CNAME = {1} CBDs = {2}".format(i+1, cname, ','.join(cbd))
         return
 
-    def cif_diff(self, version, print_report=True):
+    def cif_diff(self, caldb2cmp, print_report=True):
         """
         compares the current Caldbindx cif (as given by the caldb.cif attribute) to the specified version and returns a dictionary showing:
         - MISSING_FROM_COMPARISON:names of files & extension numbers in current
@@ -525,7 +525,7 @@ class Caldb(object):
         - CHANGED_QUALITY: names of files & extension numbers in the current Caldbindx object which have changed their quality flags compared
         to the comparison Caldbindx object TODO
 
-        :param Cif2cmp: Caldbindx object used for comparison with current Caldbindx instance
+        :param caldb2cmp: Caldbindx object to be compared to the current Caldbindx instance
         :param print_report: if True, prints a nicely formatted report of the differences to the screen
         :return:
 
@@ -541,21 +541,29 @@ class Caldb(object):
         #     then see if testcif2cmp is the same as testcif.
         #            if not testcif2cmp.equals(testcif)
         #
-        # If it is move on, if not find the differences
+        # If it is, move on, if not find the differences
         diff_dict = dict()
         cifdf = self.get_cif()
         diff_dict['CIF'] = self.cif
 
-        caldb2cmp = self
-        caldb2cmp.set_cif(version=version)
+
+        if not self.cif:
+            print "CIF not set for main caldb object; use set_cif() method to set it; returning"
+            return
+        if not caldb2cmp.cif:
+            print "CIF not set for comparison caldb object; use set_cif() method to set it; returning"
+            return
+
         cifdf2cmp = caldb2cmp.get_cif()
         diff_dict['ComparisonCIF'] = caldb2cmp.cif
 
         # get unique filenames from cif
         files = set(cifdf.CAL_DIR.str.strip() + '/' + cifdf.CAL_FILE.str.strip())
+
         # get unique filenames from comparison cif
         cifdf2cmpfiles = set(cifdf2cmp.CAL_DIR.str.strip() + '/' + cifdf2cmp.CAL_FILE.str.strip())
-        # find files in cif not in comparison; then files in comparison not in cif
+
+        # find files in cif which are not in comparison cif; then find those files in comparison not in cif
         missing_from_comparison = [x for x in files if x not in cifdf2cmpfiles]
         missing_from_current = [x for x in cifdf2cmpfiles if x not in files]
 
@@ -564,11 +572,11 @@ class Caldb(object):
         if missing_from_comparison:
           diff_dict['MISSING_FROM_Comparison_CIF'] = missing_from_comparison
         else:
-            diff_dict['MISSING_FROM_Comparison_CIF'] = 'All files in {0} found in {1}'.format(self.cif, caldb2cmp.cif)
+            diff_dict['MISSING_FROM_Comparison_CIF'] = ['All files in {0} found in {1}'.format(self.cif, caldb2cmp.cif)]
         if missing_from_current:
             diff_dict['MISSING_FROM_CIF'] = missing_from_current
         else:
-            diff_dict['MISSING_FROM_CIF'] = 'No files in {1} missing from {0}'.format(self.cif, caldb2cmp.cif)
+            diff_dict['MISSING_FROM_CIF'] = ['No files in {1} missing from {0}'.format(self.cif, caldb2cmp.cif)]
 
         # check changes in number of extensions, cal_qual
         # for each file in the CIF_to_CMP, find all the entries for that file in the CIF
@@ -1803,7 +1811,13 @@ def test_makemissioncif(telescope='Swift',instrument='SC', version='20170629',mi
     return
 
 def check_cif_diff():
-    pass
+    fermiv10 = Caldb(telescope='fermi', instrument='lat')
+    fermiv10.set_cif('caldb_v10r0p5_20150509.indx')
+    fermiv11 = Caldb(telescope='fermi', instrument='lat', caldb='/Volumes/SXDC/caldb_test/fermi')
+    fermiv11.set_cif('caldb_v11r5p3_20180215.indx')
+    diff_dict = fermiv11.cif_diff(fermiv10)
+    return
+
     
 if __name__ == "__main__":# create_caldb_tar('nustar','fpm','20161021', tardir='/Users/corcoran/Desktop/tmp/caltartest',
     #                 tarName='goodfiles_nustar_fpm_94nov9.tar.gz',
@@ -1857,10 +1871,12 @@ if __name__ == "__main__":# create_caldb_tar('nustar','fpm','20161021', tardir='
     # caldb.set_cif()
     # caldb.find_calfiles('FULL',)
 
-    uvcaldb=Caldb(telescope='swift',instrument='uvota')
-    uvcaldb.set_cif(version='caldb.indx20170922')
-    outdir='/software/github/heasarc/pycaldb/html/cifs'
-    uvcaldb.html_summary(missionurl='https://swift.gsfc.nasa.gov', clobber=True, outdir=outdir)
+    # uvcaldb=Caldb(telescope='swift',instrument='uvota')
+    # uvcaldb.set_cif(version='caldb.indx20170922')
+    # outdir='/software/github/heasarc/pycaldb/html/cifs'
+    # uvcaldb.html_summary(missionurl='https://swift.gsfc.nasa.gov', clobber=True, outdir=outdir)
+
+    check_cif_diff()
 
 
 
