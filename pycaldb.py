@@ -209,6 +209,9 @@ class Caldb(object):
 
         :return: returns the available caldb.indx* files from the index directory as a list
         """
+
+        # TODO - allow user to return the version that's currently being used (may not be the latest version)
+
         # get versions of available caldb.indx files
         try:
             insdir = self.get_insdir()
@@ -260,9 +263,9 @@ class Caldb(object):
 
     def get_cif(self):
         """
-        get the calibration index file as a FITS hdu
+        get the calibration index file as a Pandas Datafram
 
-        :return: fits hdu of the cif as specified in
+        :return: Pandas dataframe of the cif
         """
         cifhdu = self.get_cifhdu()
         try:
