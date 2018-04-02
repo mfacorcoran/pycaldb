@@ -1,6 +1,16 @@
 import heasarc as h
 import os
 
+"""
+Import this package as 
+
+ from heasarc.pycaldb.CHANDRA_CALDB_Update import *
+ 
+then run it as caldbmgr as
+
+In [3]: chandra_caldb_update('4.7.8')
+"""
+
 def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
                          ChandraCaldbDir = "/pub/arcftp/caldb",
                          ChandraCaldbHost = "cda.harvard.edu",
@@ -121,7 +131,13 @@ def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
     
     return status
 
-def chandra_html_summaries(outroot = '/www/htdocs/docs/heasarc/caldb/data/chandra'):
+def chandra_html_summaries(outroot = '/www/htdocs/docs/heasarc/caldb/data/chandra', clobber=False):
+    """
+    Create html summary files for the current CHANDRA CIFs in the HEASARC CALDB
+    writes by default to the caldbwwwdev chandra area, so should be run as mcorcora on heasarcdev (note:
+    as of Mar 22 2018 caldbmgr has been added to the wwwwgroup so this can be directly run by caldbmgr)
+    :param outroot: root directory where output html files will be placed
+    """
     ccal = h.pc.Caldb(telescope='chandra')
     murl = 'http://cxc.harvard.edu'
     instruments = ccal.get_instruments()
@@ -131,7 +147,7 @@ def chandra_html_summaries(outroot = '/www/htdocs/docs/heasarc/caldb/data/chandr
         ccal.set_cif(ver)
         outdir = os.path.join(outroot,inst,'index')
         print 'Writing to {outd}'.format(outd=outdir)
-        ccal.html_summary(missionurl=murl, outdir=outdir)
+        ccal.html_summary(missionurl=murl, outdir=outdir, clobber=clobber)
 
 if __name__ == "__main__":
     chandra_caldb_update('4.7.7')

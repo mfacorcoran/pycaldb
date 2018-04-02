@@ -122,15 +122,16 @@ def update_clockcor(version, file,
 
     os.chdir(curdir)
     print "Do the following:"
-    print "edit the what's new, rss feed and supported missions page"
-    print "update http://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/nustar/nustar_caldb.html"
+    print "create /docs/heasarc/caldb/data/nustar/fpm/index.html from current caldb.indx file using the Caldb html_summary() method on heasarcdev"
     print "Create /www/htdocs/docs/heasarc/caldb/nustar/docs/release*.txt file for current release"
     print "update /www/htdocs/docs/heasarc/caldb/nustar/docs/nustar_caldbhistory.html"
-    print "add rss item to /www/htdocs/docs/nustar/news/nustar.rss"
-    print "update astroupdate (use RESPONSIBLE_PARTY = NuSTAR for astroupdate.rss"
     print "Change the dates on the nustar caldb tar files"
-    print "create /docs/heasarc/caldb/data/nustar/fpm/index.html from current caldb.indx file"
-    print "run /www.prod/htdocs/docs/rss/software_rss2.pl"
+    print "update http://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/nustar/nustar_caldb.html"
+    print "edit the supported missions and the what's new page, and the rss feed"
+    print "add rss item to /www/htdocs/docs/nustar/news/nustar.rss"
+    print "update astroupdate (use RESPONSIBLE_PARTY = NuSTAR for astroupdate.rss)"
+    print "run /www.prod/htdocs/docs/rss/nustar_rss2.pl (and /www/ version)"
+    print "run /www.prod/htdocs/docs/rss/software_rss2.pl and /www/ version"
     return
 
 
