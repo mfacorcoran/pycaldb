@@ -86,6 +86,7 @@ class Caldb(object):
             cfig=cfig[self.telescope]
         return cfig
 
+
     def check_config(self):
         """
         returns True if the CALDB is configured for the specified telescope and/or instrument, False otherwise
@@ -737,8 +738,162 @@ class Caldb(object):
         print "Wrote {0}".format(fname)
         return fname
 
+    def create_caldb_tar(tarName="",
+                         tardir=".", calQual=0,
+                         caldbdirs=['bcf', 'cpf'],
+                         caldb="http://heasarc.gsfc.nasa.gov/FTP/caldb"):
+        """ Create CALDB tar file
 
-class CaldbFile(Caldb):
+        creates a tar file of "good" files for given mission/instrument
+        from the specified caldb.
+
+        This should provide a means to generate the tar file so a) caldbmgr can generate
+        new tar files for new caldb updates and b) allow users the ability to
+        generate a tar file of previous caldb versions to install locally
+
+        so to do this we want to
+            a) access the caldb.indx file for a specified version
+            b) read the file, get the list of all the good files for that version
+            c) create the tar file for the goodfiles (handle case of remote or local caldb)
+
+        :param mission: name of the mission in the caldb (str) ex: nustar
+        :param instrume: name of the mission's instrument (str) ex: fpma
+        :param version: version of caldb.indx file to use to create tar file (for example caldb.indx20170504)
+        :param tarName: name of tarfile to be created - will be constructed if not specified
+        :param tardir: name of output directory for tarfile; if not specified use CWD
+        :param caldbdirs: subdirectories of $CALDB/data/<telescop>/<instrume> to tar
+            (the index directory is always retrieved)
+        :param caldb: top-level caldb directory or url
+        :return: status (0 if no errors)
+        """
+        import tarfile
+        from ftplib import FTP
+        import shutil
+        tel = self.telescope
+        instr = self.instrume
+        # ver should be of the form 20170503
+        ver = version.split('caldb.indx')[1].strip()
+        cwd = os.getcwd()
+        status = 0
+        calQual = int(calQual)  # make sure this is an integer
+
+        cif = self.cif
+        try:
+            hdu = pyfits.open(cif)
+        except Exception, errmsg:
+            print("Could not open {0}; returning".format(cif))
+            status = -1
+            return status
+        if not tarName:  # if tarname not specified, use "standard" naming
+            tarName = "{3}/goodfiles_{0}_{1}_{2}.tar.gz".format(tel, instr, ver, tardir)
+        tar = tarfile.open(tarName, "w:gz")
+        if (("http://" in caldb) or ("ftp://" in caldb)):  # if remote, download the index file directory
+            tindname = "{0}/index.tar".format(tardir)
+            tindex = open(tindname, 'w')
+            ftp = FTP("heasarc.gsfc.nasa.gov")
+            ftp.login(user="anonymous", passwd="")
+            # heasarc ftp allows retrieval of an entire directory if .tar appended to directory name
+            ftp.retrbinary("RETR /FTP/caldb/data/{0}/{1}/index.tar".format(tel, instr), tindex.write)
+            tindex.close()
+            t = tarfile.open(tindname, 'r')
+            try:
+                t.extractall()
+            except Exception, errmsg:
+                print "Problem extracting files from index.tar:{0}".format(errmsg)
+                status = -1
+            cifs = glob.glob('index/caldb*')
+            arcname = ['index/' + c[c.rfind('/') + 1:] for c in cifs]
+            for c, a in zip(cifs, arcname):
+                tar.add(c, "data/{0}/{1}/{2}".format(tel, instr, a))
+            if os.path.islink("caldb.indx"):
+                print "Removing {0}/caldb.indx".format(tardir)
+                os.remove("{0}/caldb.indx".format(tardir))
+            try:
+                os.symlink("index/caldb.indx{0}".format(ver), "caldb.indx")
+            except OSError, emsg:
+                print "Could not create symbolic line to caldb.indx"
+                print "Error message was: {0}".format(emsg)
+                print "returning"
+                status = -1
+                return status
+            tar.add("caldb.indx", "data/{0}/{1}/caldb.indx".format(tel, instr))
+            shutil.rmtree(tardir + '/index')  # remove local index directory
+            os.remove(tardir + '/index.tar')
+        else:
+            cifdir = "{0}/data/{1}/{2}/index".format(caldb, tel, instr)
+            cifs = glob.glob("{0}/caldb*".format(cifdir))
+        arcname = ['index/' + c[c.rfind('/') + 1:] for c in cifs]
+        for c, a in zip(cifs, arcname):
+            tar.add(c, "data/{0}/{1}/{2}".format(tel, instr, a))
+        if os.path.isfile("{0}/caldb.indx".format(tardir)):
+            print "Removing {0}/caldb.indx".format(tardir)
+            os.remove("{0}/caldb.indx".format(tardir))
+        try:
+            os.symlink("index/caldb.indx{0}".format(ver), "caldb.indx")
+        except OSError, errmsg:
+            lcif = "{0}/caldb.indx".format(tardir)
+            print errmsg
+            print "Does file {0} exist? {1}".format(lcif, os.path.isfile(lcif))
+            status = -1
+        tar.add("caldb.indx", "data/{0}/{1}/caldb.indx".format(tel, instr))
+        os.remove("{0}/caldb.indx".format(tardir))
+        # get calfiles
+        ciftab = hdu[1].data
+        cqual = ciftab['CAL_QUAL']
+        cfiles = ciftab['CAL_FILE']
+        cdir = ciftab['CAL_DIR']
+        # get cfile_to_tar, list of unique caldb files to tar based on specified cal quality
+        # and create goodfiles array
+        cfile_to_tar = []
+        cdir_to_tar = []
+        goodfiles = []
+        for cq, cf, cd in zip(cqual, cfiles, cdir):
+            testfile = "{0}/{1}".format(cd, cf)
+            if (cq == calQual) and (testfile not in cfile_to_tar):
+                cfile_to_tar.append(testfile)
+                cdir_to_tar.append(cd)
+                goodfiles.append("{0}".format(testfile))
+        # now create list of selected goodfiles based on the specified caldbdirs list
+        goodfiles_selected = []
+        for c in caldbdirs:
+            tmp = [x for x in goodfiles if c in x]
+            goodfiles_selected.extend(tmp)
+        # goodfiles_selected now contains the list of qualtity selected caldb files in the specified subdirectories caldbdirs
+        for goodfile in goodfiles_selected:
+            if ("http://" in caldb) or ("ftp://" in caldb):  # if remote access, download the file
+                # download the goodfile from the heasarc
+                response = urllib2.urlopen("{0}/{1}".format(caldb, goodfile))
+                data = response.read()
+                localgoodfile = goodfile[goodfile.rfind("/") + 1:]  # strip off the directory path for the local file
+                tmp_cfile = "{0}/{1}".format(tardir, localgoodfile)
+                out = open(tmp_cfile, 'w')
+                out.write(data)
+                out.close()
+                print "Adding {0} as {1}".format(tmp_cfile, goodfile)
+                try:
+                    tar.add(tmp_cfile, arcname=goodfile)
+                except Exception, errmsg:
+                    print "Error adding {0}".format(goodfile)
+                    print errmsg
+                    status = -1
+                os.remove(tmp_cfile)
+            else:  # using locally-mounted caldb
+                # tmp_cfile = "{0}/{2}".format(caldb, cd, cf)
+                cfile_to_add = "{0}/{1}".format(caldb, goodfile)
+                print "Adding {0} as {1}\n".format(cfile_to_add, goodfile)
+                try:
+                    tar.add(cfile_to_add, arcname=goodfile)
+                except Exception, errmsg:
+                    print "Error adding {0}".format(goodfile)
+                    print errmsg
+                    status = -1
+
+        tar.close()
+        os.chdir(cwd)
+        return status
+
+
+class CaldbFile(object):
     """
     A caldb file object has these attributes:
         - a file name
@@ -774,6 +929,8 @@ class CaldbFile(Caldb):
         self.telescop = telescope
         self.instrume = instrument
         calinfo = [] # calinfo is an array of dictionariers which summarizes the caldb file elements
+        self.filename = filename
+        self.path= os.path.split(filename)[0]
         cdict = dict()
         for i, c in enumerate(cdu):
             cdict = get_calkeys(filename, i)
@@ -1879,7 +2036,9 @@ if __name__ == "__main__":# create_caldb_tar('nustar','fpm','20161021', tardir='
     # outdir='/software/github/heasarc/pycaldb/html/cifs'
     # uvcaldb.html_summary(missionurl='https://swift.gsfc.nasa.gov', clobber=True, outdir=outdir)
 
-    check_cif_diff()
+    #check_cif_diff()
+
+    testfile = CaldbFile('/Users/corcoran/program/HEASARC/missions/NICER_HEASARC/calibration/caldbdev/20180404/nixtisoyuz20170601v001.fits')
 
 
 
