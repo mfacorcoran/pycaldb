@@ -146,7 +146,7 @@ def update_clockcor(version, file,
     old_tf = Popen('ls /FTP/caldb/data/nustar/fpm/goodfiles_nustar_fpm_2*.tar*', shell=True, stdout=PIPE).communicate()[0].strip()
     cmd = 'mv {0} /FTP/caldb/data/nustar/fpm/goodfiles_nustar_fpm_{1}.tar.gz'.format(old_tf, version)
     os.system(cmd)
-    old_cf = = Popen('ls /FTP/caldb/data/nustar/fpm/goodfiles_nustar_fpm_clockcor_2*.tar*', shell=True, stdout=PIPE).communicate()[0].strip()
+    old_cf = Popen('ls /FTP/caldb/data/nustar/fpm/goodfiles_nustar_fpm_clockcor_2*.tar*', shell=True, stdout=PIPE).communicate()[0].strip()
     cmd = 'mv {0} /FTP/caldb/data/nustar/fpm/goodfiles_nustar_fpm_{1}.tar.gz'.format(old_cf, version)
     os.system(cmd)
 
