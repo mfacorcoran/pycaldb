@@ -387,6 +387,7 @@ class Caldb(object):
             print("Copied {cifsrc} to {dst}").format(cifsrc=cifsrc, dst=dst)
             return
 
+
     def cifstats(self):
         """ get summary statistics for a caldb.indx file
 
