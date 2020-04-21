@@ -1,3 +1,13 @@
+#
+# Python 3 version of pycaldb
+#
+
+__author__ = 'M. F. Corcoran'
+__version__ = '0.1'
+
+# TODO 1. check that each file in the CALDB directory is in the caldb.indx file
+#   for local caldb, need to traverse the directory tree
+
 import os
 import datetime
 import numpy as np
@@ -5,11 +15,10 @@ from astropy.time import Time
 from astropy.io import fits as pyfits
 from astropy.table import Table
 import sys
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import glob
 import jinja2
 from heasarc import utils as hu
-# from heasarc.utils.webutils import webutils as hw
 import time
 import ftplib
 
@@ -17,10 +26,11 @@ class Caldb(object):
     """
     Defines a CALDB object; optionally specify the telescope (& instrument)
     """
-    def __init__(self,caldb=None,
+    def __init__(self,telescope = None, instrument = None,
+                 caldb=None,
                  caldbconfig = None,
                  caldbalias = None,
-                 telescope = None, instrument = None):
+                 ):
         """ Returns a CALDB object
         A CALDB object defines the structure of a calibration database.  The structure is defined as:
            * the location of the caldb (i.e. the value of caldb environment variable)
@@ -37,19 +47,19 @@ class Caldb(object):
         if not caldb:
             try:
                 caldb = os.environ['CALDB']
-            except KeyError, errmsg:
+            except KeyError as errmsg:
                 print ("{0} missing ".format(errmsg))
                 caldb = ''
         if not caldbconfig:
             try:
                 caldbconfig = os.environ['CALDBCONFIG']
-            except KeyError, errmsg:
+            except KeyError as errmsg:
                 print ("{0} missing ".format(errmsg))
                 caldbconfig = ''
         if not caldbalias:
             try:
                 caldbalias = os.environ['CALDBALIAS']
-            except KeyError, errmsg:
+            except KeyError as errmsg:
                 print ("{0} missing ".format(errmsg))
                 caldbalias = ''
         self.caldb = caldb.strip()
@@ -69,10 +79,10 @@ class Caldb(object):
         if self.telescope:
             # if telescope defined check that the current caldb is configured for it
             if not self.check_config():
-                #print "Configuration issue with Telescope {0} or instrument {1}".format(self.telescope, self.instrument)
-                print "Use set_telescope(), set_instrument() methods to set telescope and/or instrument attributes"
+                print ("Use set_telescope(), set_instrument() methods to set telescope and/or instrument attributes")
                 self.telescope = None
                 self.instrument = None
+        self.cif = ''
         return
 
 
@@ -95,24 +105,24 @@ class Caldb(object):
         # read the caldb config file
         cfig = get_caldbconfig(self.caldbconfig)
         if self.telescope:
-            if self.telescope in cfig.keys():
+            if self.telescope in list(cfig.keys()):
                 configured = True
             else:
                 configured = False
             if configured:
-                print "caldb.config configured for TELESCOP = {0}".format(self.telescope)
+                print ("caldb.config configured for TELESCOP = {0}".format(self.telescope))
                 # if the caldb is configured for telescope, check if its also configured
                 # for the telescope's instrument, if the instrument is specified
                 if self.instrument:
-                    if self.instrument in cfig[self.telescope].keys():
+                    if self.instrument in list(cfig[self.telescope].keys()):
                         print(" ... and for INSTRUME = {inst}".format(inst=self.instrument))
                         configured = True
                     else:
                         configured = False
                         print("  ... but not configured for instrument {inst} of telescope {tel}".format(inst=self.instrument,
                                                                                                       tel = self.telescope))
-                        print "Available INSTRUME values for {0}:".format(self.telescope)
-                        print(" ".join(cfig[self.telescope].keys()))
+                        print ("Available INSTRUME values for {0}:".format(self.telescope))
+                        print(" ".join(list(cfig[self.telescope].keys())))
 
         return configured
 
@@ -121,7 +131,7 @@ class Caldb(object):
         returns the names of the missions defined in the caldb.config file
         :return:
         """
-        return self.get_config().keys()
+        return list(self.get_config().keys())
 
     def set_telescope(self, mission, verbose=True):
         """
@@ -131,19 +141,19 @@ class Caldb(object):
         """
         cfig= get_caldbconfig(self.caldbconfig)
         try:
-            missions = cfig.keys()
+            missions = list(cfig.keys())
         except KeyError:
-            print "Could not get missions from caldbconfig file '{0}'".format(self.caldbconfig)
+            print ("Could not get missions from caldbconfig file '{0}'".format(self.caldbconfig))
             return
         if mission in missions:
             self.telescope = mission
             self.instrument = ''
-            print "Setting telescope to {0}; Available instruments are".format(mission)
-            print "  ".join(cfig[mission].keys())
+            print ("Setting telescope to {0}; Available instruments are".format(mission))
+            print ("  ".join(list(cfig[mission].keys())))
         else:
-            print "Mission {0} not found in {1}".format(mission, self.caldb)
-            print "Available missions are: "
-            print " ".join(missions)
+            print ("Mission {0} not found in {1}".format(mission, self.caldb))
+            print ("Available missions are: ")
+            print (" ".join(missions))
             return
         return
 
@@ -156,10 +166,14 @@ class Caldb(object):
         #cfig = get_caldbconfig(self.caldbconfig)
         if self.telescope:
             cfig = self.get_config()
-            instruments = cfig.keys()
+            instruments = list(cfig.keys())
             if verbose:
-                print "Available instruments for {0} are".format(self.telescope)
-                print ' '.join(instruments)
+                if len(instruments) == 1:
+                    output = "The available instrument for {0} is".format(self.telescope)
+                else:
+                    output = "Available instruments for {0} are".format(self.telescope)
+                print (output)
+                print (' '.join(instruments))
         else:
             print("Telescope not set for Caldb object.  Use set_telescop() method to set it")
             instruments=''
@@ -172,32 +186,36 @@ class Caldb(object):
         :return:
         """
         if not self.telescope:
-            print "Telescope not set in Caldb object; use set_telescope() to set it"
+            print ("Telescope not set in Caldb object; use set_telescope() to set it")
             return
         try:
             instruments = get_caldbconfig(self.caldbconfig)[self.telescope]
         except:
-            print "Problem getting instruments for {0}; returning".format(self.telescope)
+            print ("Problem getting instruments for {0}; returning".format(self.telescope))
             return
         if instrument in instruments:
             self.instrument = instrument
         else:
-            print "Instrument {0} is not defined for Telescope {1}".format(instrument, self.telescope)
-            print "Available instruments for {0} are".format(self.telescope)
+            print ("Instrument {0} is not defined for Telescope {1}".format(instrument, self.telescope))
+            print ("Available instruments for {0} are".format(self.telescope))
             for i in instruments:
-                print i
+                print (i)
         return
 
     def get_insdir(self):
         """
         gets the directory in the caldb that corresponds to the specified instrument
         :return: path to instrument directory
+
+        Example
+        py> caldb = Caldb('nustar','fpm')
+        py> insdir = Caldb.get_insdir()
         """
         if not self.telescope:
-            print "Telescope not defined for Caldb object; use set_telescope() to set it"
+            print ("Telescope not defined for Caldb object; use set_telescope() to set it")
             return
         if not self.instrument:
-            print "Instrument not defined for Caldb object; use set_instrument() to set it"
+            print ("Instrument not defined for Caldb object; use set_instrument() to set it")
             return
         instrument  = self.instrument
         insdir = os.path.join(self.caldb,self.get_config()[instrument][1])
@@ -226,28 +244,34 @@ class Caldb(object):
             return []
         if "heasarc.gsfc.nasa.gov" in self.caldb:
             # using remote access so need to get caldb.indx file list using ftplib
-            ftp = ftplib.FTP("heasarc.gsfc.nasa.gov")
+            #ftp = ftplib.FTP("heasarc.gsfc.nasa.gov")
+            ftp = ftplib.FTP_TLS("heasarc.gsfc.nasa.gov")
             ftp.login("anonymous", "anonymous")
+            ftp.prot_p() # switch to secure ('protected') mode for FTPS
             try:
                 wdir = indxdir.split('heasarc.gsfc.nasa.gov/')[1] # get heasarc directory path
                 ftp.cwd(wdir)
                 versions = ftp.nlst()
                 ftp.close()
+                versions.sort()
                 return versions
-            except Exception, errmsg:
-                print "problem accessing {0} on heasarc.gsfc.nasa.gov via FTP {1}".format(indxdir,errmsg)
+            except Exception as errmsg:
+                print ("Problem accessing {0} on heasarc.gsfc.nasa.gov via FTP {1}".format(indxdir,errmsg))
         else:
             indxdir = os.path.join(insdir,'index')
             if os.path.exists(indxdir):
                 versions = glob.glob("{0}/*".format(indxdir))
                 try:
                     versions = [os.path.split(x)[1] for x in versions]
+                    versions.sort()
                 except:
-                    print "problem accessing {0}".format(indxdir)
+                    print ("problem accessing {0}".format(indxdir))
                 return versions
             else:
                 #local indxdir does not exist
-                print "{0} does not exist".format(indxdir)
+                print ("{0} does not exist".format(indxdir))
+                print ("Available version: {0}".format(os.path.join(indxdir.replace('index',''),'caldb.indx')))
+
                 return
 
     def set_cif(self, version=None):
@@ -271,8 +295,8 @@ class Caldb(object):
         cifhdu = self.get_cifhdu()
         try:
             cifdf = Table(cifhdu[1].data).to_pandas()
-        except TypeError, errmsg:
-            print "Error converting CIF {0} to Table; exiting".format(self.cif)
+        except TypeError as errmsg:
+            print ("Error converting CIF {0} to Table; exiting ({1})".format(self.cif, errmsg))
             return
         if 'INSTRUME' not in cifdf.columns:
             cifdf['INSTRUME'] = 'INDEF'
@@ -288,16 +312,13 @@ class Caldb(object):
         cifdf.CAL_CBD = cbds
         return cifdf
 
-    def get_cifhdu(self, cif = None):
-        if not cif:
-            try:
-                print "Retrieving {0}".format(self.cif)
-            except AttributeError:
-                print "cif needs to be set using the set_cif() method for the CALDB instance"
+    def get_cifhdu(self, verbose=False):
+        if not self.cif:
+                print ("cif needs to be set using the set_cif() method for the CALDB instance")
                 return
         try:
             cifhdu = pyfits.open(self.cif)
-        except Exception, errmsg:
+        except Exception as errmsg:
             print ('Could not open file {0} ({1})'.format(self.cif, errmsg))
             cifhdu = None
         return cifhdu
@@ -376,9 +397,9 @@ class Caldb(object):
                     print("File not overwritten; returning")
                     return
             if not self.version:
-                print "Available CIFs are:\n "
-                print " ".join(self.versions())
-                cifsrc =  raw_input("Enter name of CIF to copy > ")
+                print ("Available CIFs are:\n ")
+                print (" ".join(self.versions()))
+                cifsrc =  input("Enter name of CIF to copy > ")
             else:
                 cifsrc = self.version
             cifsrc = os.path.join(self.get_insdir(),'index',cifsrc)
@@ -406,10 +427,16 @@ class Caldb(object):
         :param caldb: caldb top-level directory (or url)
         :return: dictionary of summary statistics for the caldb.indx file
         """
+        if len(self.cif) == 0:
+            print("Caldb index file not set; use set_cif() method to set it; returning")
+            return
         try:
             cifdf = self.get_cif()
         except AttributeError:
-            print "Error in retrieving named caldb index file; returning"
+            print ("Error in retrieving named caldb index file; returning")
+            return
+        if type(cifdf) == type(None):
+            print("No entries in CIF; returning")
             return
         cifstat = dict()
         cifstat['Number_Unique_filenames'] = len(set(cifdf.CAL_FILE))
@@ -420,8 +447,9 @@ class Caldb(object):
         cifstat['Number_Unique_files'] = len(set(calfiles))
         cifstat['Number_files_qual_0'] = len(set(cifdf[cifdf.CAL_QUAL == 0].CAL_FILE))
         cifstat['Number_files_qual_5'] = len(set(cifdf[cifdf.CAL_QUAL == 5].CAL_FILE))
-        cifstat['Number_of_files_other_quality'] = cifstat['Number_Unique_filenames'] - (
-        cifstat['Number_files_qual_0'] + cifstat['Number_files_qual_5'])
+        #cifstat['Number_of_files_other_quality'] = cifstat['Number_Unique_filenames'] - (
+        #cifstat['Number_files_qual_0'] + cifstat['Number_files_qual_5'])
+        cifstat['Number_of_files_other_quality'] = len(set(cifdf[(cifdf.CAL_QUAL != 0) & (cifdf.CAL_QUAL != 5)]['CAL_FILE']))
         cifstat['Number_unique_CNAMS'] = len(set(cifdf.CAL_CNAM))
         return cifstat
 
@@ -441,7 +469,7 @@ class Caldb(object):
         try:
             cnames=list(set(cdf['CAL_CNAM']))
         except TypeError:
-            print "Could not retrieve CIF; returning"
+            print ("Could not retrieve CIF; returning")
             return
         return cnames
 
@@ -462,11 +490,11 @@ class Caldb(object):
         # convert to upper case for comparison
         cdfc = cdf[cdf['CAL_CNAM'] == cname]
         if len(cdfc)==0:
-            print "Could not find any files with CAL_CNAM  = {0} in caldbindx".format(cname)
+            print ("Could not find any files with CAL_CNAM  = {0} in caldbindx".format(cname))
             return -1
         cdfcq = cdfc[cdfc['CAL_QUAL'] == cqual]
         if len(cdfcq) == 0:
-            print "Could not find any files with CAL_CNAM = {0} and CAL_QUAL ={1}".format(cname, cqual)
+            print ("Could not find any files with CAL_CNAM = {0} and CAL_QUAL ={1}".format(cname, cqual))
             return -1
         if return_files:
             files = []
@@ -478,46 +506,54 @@ class Caldb(object):
         else:
             return cdfcq
 
-    def get_calfile_info(self, calfilename):
+    def get_calfile_info(self, calfilename, verbose=True):
         """
         returns info from the caldbindx file for the specified calfilename
-        :param calfilename: name of cal file of interest, with fully specified directory path relative to $CALDB
-        :return:
+        :param calfilename: name of cal file of interest, with fully specified directory path (can be relative to self.caldb, or path can include self.caldb)
+        :return: status (0 = no errors, > 0 means an error occurred)
         """
         cdf = self.get_cif()
         cfsplit = os.path.split(calfilename)
-        cdir = cfsplit[0]
+        cdir = cfsplit[0].replace(self.caldb+'/','')
         cfile = cfsplit[1]
+        status = 0
         try:
             fileinfodf = cdf[(cdf.CAL_FILE == cfile) & (cdf.CAL_DIR == cdir)]
         except AttributeError:
-            print "Cif data frame has no CAL_FILE attribute; returning"
-            return
+            print ("Cif data frame has no CAL_FILE/CAL_DIR attribute; returning")
+            status = 1
+            return status
         if not len(fileinfodf):
-            print "Could not find {0} in {1}".format(cfile, self.cif)
-            return
+            print ("Could not find {0} in {1}".format(cfile, self.cif))
+            status = 2
+            return status
         # try:
         #     fileinfodf = filedf[filedf.CAL_DIR == cdir]
         # except:
         #     print "Could not find {0} in {1}".format(cdir, self.cif)
         #     return
-        print "For {0}:".format(calfilename)
-        print "\nInformation from {0}".format(self.cif)
-        print "  Number of extensions indexed in CIF = {0}".format(max(fileinfodf['CAL_XNO']))
-        fname = os.path.join(self.caldb, fileinfodf.CAL_DIR.iloc[0], fileinfodf.CAL_FILE.iloc[0])
-        try:
-            hdu = pyfits.open(fname)
-        except Exception, errmsg:
-            print "Could not retrieve {0} ({1}".format(fname, errmsg)
-            return
-        print "  Number of extension in File = {0}".format(len(hdu)-1)
-        print "  CNAMEs for each extension from CIF: "
-        for i in range(len(hdu)-1):
-            fxno = fileinfodf[fileinfodf.CAL_XNO == i+1]
-            cname = fxno.CAL_CNAM.iloc[0]
-            cbd = fxno.CAL_CBD.iloc[0]
-            print "    Extension #{0} CNAME = {1} CBDs = {2}".format(i+1, cname, ','.join(cbd))
-        return
+        if verbose:
+            print ("For {0}:".format(calfilename))
+            print ("\nInformation from {0}".format(self.cif))
+            print ("  Number of entries in CIF = {0}".format(len(fileinfodf['CAL_XNO'])))
+            print (fileinfodf[['CAL_XNO','CAL_CNAM', 'CAL_QUAL', 'CAL_DATE']])
+            fname = os.path.join(self.caldb, fileinfodf.CAL_DIR.iloc[0], fileinfodf.CAL_FILE.iloc[0])
+            print ("\n Reading from {0}".format(calfilename))
+            try:
+                hdu = pyfits.open(fname)
+            except Exception as errmsg:
+                print ("Could not retrieve {0} ({1}".format(fname, errmsg))
+                status = 3
+                return status
+            print ("  Number of extension in File = {0}".format(len(hdu)-1))
+            print ("  CNAMEs & QUALITY for each extension from CIF: ")
+            for i in range(len(hdu)-1):
+                fxno = fileinfodf[fileinfodf.CAL_XNO == i+1]
+                cname = fxno.CAL_CNAM.iloc[0]
+                cqual = fxno.CAL_QUAL.iloc[0]
+                cbd = fxno.CAL_CBD.iloc[0]
+                print ("    Extension #{0} CNAME = {1} QUAL = {2}  CBDs = {3}".format(i+1, cname, cqual, ','.join(cbd), ))
+        return status
 
     def cif_diff(self, caldb2cmp, print_report=True):
         """
@@ -553,10 +589,10 @@ class Caldb(object):
 
 
         if not self.cif:
-            print "CIF not set for main caldb object; use set_cif() method to set it; returning"
+            print ("CIF not set for main caldb object; use set_cif() method to set it; returning")
             return
         if not caldb2cmp.cif:
-            print "CIF not set for comparison caldb object; use set_cif() method to set it; returning"
+            print ("CIF not set for comparison caldb object; use set_cif() method to set it; returning")
             return
 
         cifdf2cmp = caldb2cmp.get_cif()
@@ -602,23 +638,18 @@ class Caldb(object):
             try:
                 cols2cmp = testcif2cmp.columns
             except:
-                print f, len(testcif), len(testcif2cmp), testcif2cmp.columns
+                print (f, len(testcif), len(testcif2cmp), testcif2cmp.columns)
             for i in range(len(testcif2cmp)):
                 try:
-                    ind = np.where(testcif.iloc[i]<>testcif2cmp.iloc[i])
+                    ind = np.where(testcif.iloc[i]!=testcif2cmp.iloc[i])
                 except:
-                    print "For file {2}: Number of rows in testcif = {0}; number of rows in testcif2cmp ={1}".format(len(testcif), len(testcif2cmp), f)
+                    print ("For file {2}: Number of rows in testcif = {0}; number of rows in testcif2cmp ={1}".format(len(testcif), len(testcif2cmp), f))
                 try:
                     val_diff = ind[0][0]
                 except:
                     val_diff = None
                 if val_diff:
-                    # print "File {0} changed values:".format(f)
-                    # print "Is"
                     cols=cols2cmp.values[val_diff]
-                    # print testcif[cols]
-                    # print "Was"
-                    # print testcif2cmp[cols]
                     changedname = "{0}_{1}".format(testcif2cmp['CAL_FILE'].iloc[i], testcif2cmp['CAL_XNO'].iloc[i])
                     if type(cols)==str:
                         changedstring = "{0} Was {1} Now {2} ".format(cols, testcif2cmp[cols].iloc[i], testcif[cols].iloc[i])
@@ -626,17 +657,17 @@ class Caldb(object):
                         changedstring = ["{0} Was {1} Now {2} ".format(c, testcif2cmp[c].iloc[i], testcif[c].iloc[i]) for c in cols]
                     diff_dict['Changes'][changedname] = changedstring
         if print_report:
-            print "CIF = {0}".format(diff_dict['CIF'])
-            print "Comparison CIF ={0}".format(diff_dict['ComparisonCIF'])
-            print "Files in CIF missing from comparison CIF:"
+            print ("CIF = {0}".format(diff_dict['CIF']))
+            print ("Comparison CIF ={0}".format(diff_dict['ComparisonCIF']))
+            print ("Files in CIF missing from comparison CIF:")
             for m in diff_dict['MISSING_FROM_Comparison_CIF']:
-                print "   {0}".format(m)
-            print "Files in Comparison CIF not in CIF:"
+                print ("   {0}".format(m))
+            print ("Files in Comparison CIF not in CIF:")
             for m in diff_dict['MISSING_FROM_CIF']:
-                print "   {0}".format(m)
-            print "Changes from Comparison CIF to CIF:"
-            for c in diff_dict['Changes'].keys():
-                print "   {0}".format(diff_dict['Changes'][c])
+                print ("   {0}".format(m))
+            print ("Changes from Comparison CIF to CIF:")
+            for c in list(diff_dict['Changes'].keys()):
+                print ("   {0}".format(diff_dict['Changes'][c]))
         return diff_dict
 
     def html_summary(self, missionurl='', outdir=".",
@@ -670,11 +701,11 @@ class Caldb(object):
         try:
             version = self.version
         except AttributeError:
-            print "Version needs to be explicitly set via the caldb instance's set_cif(version=version) method; returning"
+            print ("Version needs to be explicitly set via the caldb instance's set_cif(version=version) method; returning")
             status = -1
             return status
         if not version:
-            print "Version needs to be explicitly set via the caldb instance's set_cif(version=version) method; returning"
+            print ("Version needs to be explicitly set via the caldb instance's set_cif(version=version) method; returning")
             status = -1
             return status
         if 'heasarcdev' in os.environ['HOST']:
@@ -687,21 +718,20 @@ class Caldb(object):
         try:
             ins_subdir = self.get_insdir()
         except:
-            print "Error: Could not get subdirectory for instrument; returning"
+            print ("Error: Could not get subdirectory for instrument; returning")
             return
         instrument = os.path.split(ins_subdir)[1]
         cifdf = self.get_cif()
         if not 'FILTER' in cifdf.columns:
-            print ''
-            ans = raw_input('CIF missing FILTER values; set FILTER to "INDEF" ([y]/n) > ')
-            if ans.strip().lower() <> 'n':
+            ans = input('\nCIF missing FILTER values; set FILTER to "INDEF" ([y]/n) > ')
+            if ans.strip().lower() != 'n':
                 cifdf['FILTER'] = "INDEF"
-        goodcifdf = cifdf[cifdf['CAL_QUAL'] <> cal_qual]
+        goodcifdf = cifdf[cifdf['CAL_QUAL'] != cal_qual]
         goodcifdf.reset_index(inplace=True)  # resets the index to be 0 -> len(goodcifdf)
         # Render html file
         try:
             templateLoader = jinja2.FileSystemLoader(searchpath=templatedir)
-        except Exception, errmsg:
+        except Exception as errmsg:
             print ('Could not load templates in {0}; Returning ({1})'.format(templatedir, errmsg))
             status = -1
             return status
@@ -732,11 +762,11 @@ class Caldb(object):
         try:
             with open(fname, mode='w') as fout:
                 fout.write(output_html)
-        except IOError, errmsg:
+        except IOError as errmsg:
             print('Could not write {0}; Returning ({1})'.format(fname, errmsg))
             status = -1
             return status
-        print "Wrote {0}".format(fname)
+        print ("Wrote {0}".format(fname))
         return fname
 
     def create_caldb_tar(tarName="",
@@ -781,7 +811,7 @@ class Caldb(object):
         cif = self.cif
         try:
             hdu = pyfits.open(cif)
-        except Exception, errmsg:
+        except Exception as errmsg:
             print("Could not open {0}; returning".format(cif))
             status = -1
             return status
@@ -799,22 +829,22 @@ class Caldb(object):
             t = tarfile.open(tindname, 'r')
             try:
                 t.extractall()
-            except Exception, errmsg:
-                print "Problem extracting files from index.tar:{0}".format(errmsg)
+            except Exception as errmsg:
+                print ("Problem extracting files from index.tar:{0}".format(errmsg))
                 status = -1
             cifs = glob.glob('index/caldb*')
             arcname = ['index/' + c[c.rfind('/') + 1:] for c in cifs]
             for c, a in zip(cifs, arcname):
                 tar.add(c, "data/{0}/{1}/{2}".format(tel, instr, a))
             if os.path.islink("caldb.indx"):
-                print "Removing {0}/caldb.indx".format(tardir)
+                print ("Removing {0}/caldb.indx".format(tardir))
                 os.remove("{0}/caldb.indx".format(tardir))
             try:
                 os.symlink("index/caldb.indx{0}".format(ver), "caldb.indx")
-            except OSError, emsg:
-                print "Could not create symbolic line to caldb.indx"
-                print "Error message was: {0}".format(emsg)
-                print "returning"
+            except OSError as emsg:
+                print ("Could not create symbolic line to caldb.indx")
+                print ("Error message was: {0}".format(emsg))
+                print ("returning")
                 status = -1
                 return status
             tar.add("caldb.indx", "data/{0}/{1}/caldb.indx".format(tel, instr))
@@ -827,14 +857,14 @@ class Caldb(object):
         for c, a in zip(cifs, arcname):
             tar.add(c, "data/{0}/{1}/{2}".format(tel, instr, a))
         if os.path.isfile("{0}/caldb.indx".format(tardir)):
-            print "Removing {0}/caldb.indx".format(tardir)
+            print ("Removing {0}/caldb.indx".format(tardir))
             os.remove("{0}/caldb.indx".format(tardir))
         try:
             os.symlink("index/caldb.indx{0}".format(ver), "caldb.indx")
-        except OSError, errmsg:
+        except OSError as errmsg:
             lcif = "{0}/caldb.indx".format(tardir)
-            print errmsg
-            print "Does file {0} exist? {1}".format(lcif, os.path.isfile(lcif))
+            print (errmsg)
+            print ("Does file {0} exist? {1}".format(lcif, os.path.isfile(lcif)))
             status = -1
         tar.add("caldb.indx", "data/{0}/{1}/caldb.indx".format(tel, instr))
         os.remove("{0}/caldb.indx".format(tardir))
@@ -863,35 +893,64 @@ class Caldb(object):
         for goodfile in goodfiles_selected:
             if ("http://" in caldb) or ("ftp://" in caldb):  # if remote access, download the file
                 # download the goodfile from the heasarc
-                response = urllib2.urlopen("{0}/{1}".format(caldb, goodfile))
+                response = urllib.request.urlopen("{0}/{1}".format(caldb, goodfile))
                 data = response.read()
                 localgoodfile = goodfile[goodfile.rfind("/") + 1:]  # strip off the directory path for the local file
                 tmp_cfile = "{0}/{1}".format(tardir, localgoodfile)
                 out = open(tmp_cfile, 'w')
                 out.write(data)
                 out.close()
-                print "Adding {0} as {1}".format(tmp_cfile, goodfile)
+                print ("Adding {0} as {1}".format(tmp_cfile, goodfile))
                 try:
                     tar.add(tmp_cfile, arcname=goodfile)
-                except Exception, errmsg:
-                    print "Error adding {0}".format(goodfile)
-                    print errmsg
+                except Exception as errmsg:
+                    print ("Error adding {0} (1)".format(goodfile, errmsg))
                     status = -1
                 os.remove(tmp_cfile)
             else:  # using locally-mounted caldb
                 # tmp_cfile = "{0}/{2}".format(caldb, cd, cf)
                 cfile_to_add = "{0}/{1}".format(caldb, goodfile)
-                print "Adding {0} as {1}\n".format(cfile_to_add, goodfile)
+                print ("Adding {0} as {1}\n".format(cfile_to_add, goodfile))
                 try:
                     tar.add(cfile_to_add, arcname=goodfile)
-                except Exception, errmsg:
-                    print "Error adding {0}".format(goodfile)
-                    print errmsg
+                except Exception as errmsg:
+                    print ("Error adding {0} ({1})".format(goodfile, errmsg))
                     status = -1
 
         tar.close()
         os.chdir(cwd)
         return status
+
+    def locate_calfile(self, calfile, verbose=True):
+        """ verifies that a specified file is actually in the caldb.indx file
+
+        for a specified filename, checks that this file exists in the specified calibration index file (cif),
+        then checks that the CALDB keyword values are consistent between the cif and the actual file
+        determines if the file exists in the caldb
+
+        usage:
+        % swiftcaldb = Caldb(telescope='swift', instrument='xrt')
+        % swiftcaldb.set_cif()
+        % file = 'swxbadpix20010101v006.fits'
+        % status = swiftcaldb.calfile_locate(file)
+        % if not status:
+            print ("{f} not in {c}".format(f=file, c=swift.cif)
+
+        :param calfile: caldb file relative to $CALDB
+        :param telescope: Name of TELESCOP
+        :param instrument: Name of Instrument
+        :param caldb: caldb top level directory/url
+        :param version: version of cif to use (for example caldb.indx20170405); if blank use caldb.indx
+        :return:
+        """
+        # get telescope and instrument from the caldir as a pandas dataframe
+        cifDF = self.get_cif()
+        found = cifDF[cifDF['CAL_FILE'] == calfile]
+        # if no rows returned, alert the user if verbose
+        if len(found) == 0:
+            if verbose:
+                print("File {f} not found in {c}".format(f=calfile, c = self.cif))
+        return found
 
 
 class CaldbFile(object):
@@ -940,8 +999,8 @@ class CaldbFile(object):
         try:
             calclass =  calinfo[1]['CCLS0001']
             self.path = os.path.join('data', telescope, instrument, calclass)
-        except Exception, errmsg:
-            print "Required CALDB Keyword CCLS0001 missing from first extension; cannot create CALDB path"
+        except Exception as errmsg:
+            print ("Required CALDB Keyword CCLS0001 missing from first extension; cannot create CALDB path")
             self.path = None
         return
 
@@ -955,10 +1014,10 @@ class CaldbFile(object):
             numbds = len(cc['CBD'])
             print("Ext #{0} CCNM: {1} CVSD: {2} # CBDs: {3}".format(i, cc['CCNM0001'], cc['CVSD0001'], numbds))
             if numbds:
-                print "    Boundaries = ",
-                for cb in cc['CBD'].values():
-                    print " {0}".format(cb),
-                print "\n",
+                print ("    Boundaries = "),
+                for cb in list(cc['CBD'].values()):
+                    print (" {0}".format(cb)),
+                print ("\n"),
         return
 
 def file_exists(self):
@@ -990,7 +1049,7 @@ def get_cbds(telescope, instrument, caldb=None):
     # nel=len(cbds)
     # return array of boundaries
     cbds = cbds.split()  # split the cbd values on whitespace
-    print "Splitting cbds"
+    print ("Splitting cbds")
     return (cbds, tbdata)
 
 
@@ -1031,8 +1090,8 @@ def get_caldbconfig(caldbconfig):
     try:
         with open(caldbconfig, 'r') as f:
             ccon = f.readlines()
-    except IOError, errmsg:
-        print "Problem opening {0} ({1}); returning".format(caldbconfig, errmsg)
+    except IOError as errmsg:
+        print ("Problem opening {0} ({1}); returning".format(caldbconfig, errmsg))
         return -1
     ccon = [x.strip() for x in ccon if '#' not in x] #remove comments and strip newlines
     ccon = [x.split() for x in ccon]
@@ -1041,21 +1100,21 @@ def get_caldbconfig(caldbconfig):
     for c in ccon:
         try:
             cfig[c[0].lower().strip()]=dict()
-        except IndexError, errmsg:
-            print "Could not parse TELESCOP from caldb config line = {0}".format(c)
+        except IndexError as errmsg:
+            print ("Could not parse TELESCOP from caldb config line = {0}".format(c))
             pass
     # for each telescope dictionary create subdictionary of instrument info
     for c in ccon:
         try:
             cfig[c[0].lower().strip()][c[1].lower().strip()] = c[2:]
-        except IndexError, errmsg:
-            print "Could not parse instrument from caldb config line = {0}".format(c)
+        except IndexError as errmsg:
+            print ("Could not parse instrument from caldb config line = {0}".format(c))
     return cfig
 
 def read_update_notice(telescope,updatedate,notice_dir = '/Users/corcoran/Desktop/caldb_updates',
                        chatter = 0):
     """
-    reads the update notice
+    reads the update e-mail
 
     reads the update notification e-mail text file and returns a dictionary of telescope, instrument,
     and list of files for the update.  See
@@ -1086,8 +1145,8 @@ def read_update_notice(telescope,updatedate,notice_dir = '/Users/corcoran/Deskto
         with open(update_email, mode='r') as f:
             updatelist = f.readlines()
             if chatter > 0:
-                print updatelist
-    except IOError, errmsg:
+                print (updatelist)
+    except IOError as errmsg:
         print ("Problem opening {0} ({1}; returning".format(update_email, errmsg))
         return
     # get indices of instrument lines
@@ -1102,7 +1161,7 @@ def read_update_notice(telescope,updatedate,notice_dir = '/Users/corcoran/Deskto
     # number of instrument blocks found
     numinst = len(instindex)
     if numinst < 1:
-        print "Missing instrument block; returning"
+        print ("Missing instrument block; returning")
         update_dict = -1
         return update_dict
     # at least 1 instrument block exists
@@ -1112,7 +1171,7 @@ def read_update_notice(telescope,updatedate,notice_dir = '/Users/corcoran/Deskto
         cif = [x.strip().lower().split('caldbindexfile=')[1] for x in instblock if 'caldbindexfile=' in x]
         cif = cif[0].strip()
         if len(cif) == 0:
-            print 'Calibration index file not found for instrument {0}; returning'.format(instrument[i])
+            print ("Calibration index file not found for instrument {0}; returning".format(instrument[i]))
             update_dict = -1
             return update_dict
         # find start and end of newfile block
@@ -1122,9 +1181,9 @@ def read_update_notice(telescope,updatedate,notice_dir = '/Users/corcoran/Deskto
         filelist.insert(0,cif)
         try:
             update_dict[telescope][updatedate][instrument[i]]=filelist
-        except Exception, errmsg:
-            print errmsg
-            print instrument, filelist
+        except Exception as errmsg:
+            print (errmsg)
+            print (instrument, filelist)
     return update_dict
 
 def read_cif(telescope=None,instrument=None, version=None, cifname = None, caldb=None):
@@ -1142,17 +1201,17 @@ def read_cif(telescope=None,instrument=None, version=None, cifname = None, caldb
         try:
             cifname = mk_cifname(telescope, instrument, version=version, caldb=caldb)
         except:
-            print "Error in running mk_cifname in get_cif; returning"
+            print ("Error in running mk_cifname in get_cif; returning")
             return -1
     if not caldb:
         try:
             caldb = os.environ['CALDB']
         except:
-            print 'CALDB not specfied and $CALDB environment variable not set; returning'
+            print ("CALDB not specfied and $CALDB environment variable not set; returning")
             return -1
     try:
         hdulist = pyfits.open(cifname)
-    except Exception, errmsg:
+    except Exception as errmsg:
         print ('Could not open file {0} ({1})'.format(cifname,errmsg))
         return -1
     return hdulist
@@ -1169,11 +1228,11 @@ def cif_to_df(telescope, instrument, version=None, cifname = None):
     """
     if not cifname:
         cifname = mk_cifname(telescope, instrument, version)
-    print "Retrieving CIFNAME = {0}".format(cifname)
+    print ("Retrieving CIFNAME = {0}".format(cifname))
     cif = get_cif(cifname=cifname)
     try:
         cifdf = Table(cif[1].data).to_pandas()
-    except TypeError, errmsg:
+    except TypeError as errmsg:
         sys.exit("Error accessing CIF {0}; exiting".format(cif))
     if 'INSTRUME' not in cifdf.columns:
         cifdf['INSTRUME'] = 'INDEF'
@@ -1245,8 +1304,7 @@ def quizcif(telescope, instrument, cal_cnam, detnam='',cal_cbd=['','','','','','
     """
     hdulist=get_cif(telescope,instrument, caldb=caldb)
     if hdulist==0:
-        print "CIF not found for telescope %s instrument %s" % (telescope, instrument)
-        print "Returning"
+        print ("CIF not found for telescope {0} instrument {1}; Returning".format(telescope, instrument))
         return 0
     cols = hdulist[1].columns
     cifdata = hdulist[1].data
@@ -1256,13 +1314,13 @@ def quizcif(telescope, instrument, cal_cnam, detnam='',cal_cbd=['','','','','','
     icnam=np.where(cifdata.field("cal_cnam")==cal_cnam)
     #print cifdata[icnam].field("cal_cnam")
     cifdata=cifdata[icnam]
-    print cifdata.field("cal_cnam")
+    print (cifdata.field("cal_cnam"))
     #
     # get entries that match cal_qual
     #
     iqual=np.where(cifdata.field("cal_qual")==cal_qual)
     cifdate=cifdata[iqual]
-    print cifdata.field("cal_qual")
+    print (cifdata.field("cal_qual"))
     #
     # vsd & vst
     #
@@ -1287,12 +1345,12 @@ def quizcif(telescope, instrument, cal_cnam, detnam='',cal_cbd=['','','','','','
 
     dift= cif_vsdt.jd-vsdt.jd
     #dift=vsdt.jd-cif_vsdt.jd
-    print "DIFT =" 
-    print dift
+    print ("DIFT =")
+    print (dift)
     ivsd=np.where(dift<0)
-    print ivsd[0]
+    print (ivsd[0])
     if ivsd[0].size==0: # if no elements match then ivsd[0] is an array of size 0
-        print "Time criterion not matched by CALDB"
+        print ("Time criterion not matched by CALDB")
         return
     cifdata=cifdata[ivsd] # filter on acceptable vsds.  Any cif_vsdt<vsdt is acceptable
     #
@@ -1311,7 +1369,7 @@ def quizcif(telescope, instrument, cal_cnam, detnam='',cal_cbd=['','','','','','
     #  a. find the name of the first input boundary parameter by splitting on = equality, or < or > as necessary
     param=cal_cbd[0].split('=')
     param=param[0]
-    print param
+    print (param)
 
 def get_calkeys(filename, extno):
     """
@@ -1331,7 +1389,7 @@ def get_calkeys(filename, extno):
     for ck in calkeys:
         try:
             caldict[ck]=cdu[extno].header[ck]
-        except KeyError, errmsg:
+        except KeyError as errmsg:
             print ("{0} File = {1} Ext. = {2}".format(errmsg, filename, extno))
             caldict[ck] =''
     # get the set of calibration boundary keywords as a pyfits header object
@@ -1357,7 +1415,7 @@ def get_cbds(telescope, instrument, caldb='http://heasarc.gsfc.nasa.gov/FTP/cald
     #nel=len(cbds)
     # return array of boundaries
     cbds=cbds.split() # split the cbd values on whitespace
-    print "Splitting cbds"
+    print ("Splitting cbds")
     return (cbds, tbdata)
 
 def cmp_cbd(cbd, pname, pval, punit="", chatter=0):
@@ -1381,14 +1439,13 @@ def cmp_cbd(cbd, pname, pval, punit="", chatter=0):
     if pname.upper()==a[0].upper(): # param names match
         if a[1]<=pval<=a[2]:
             if chatter>0:
-                print pname.upper(), pval, punit, " Found"
-            if punit<>a[3]: 
-                print "WARNING: UNIT MISMATCH"
-                print "Specified Unit: "+punit
-                print "Boundary Value Unit: "+a[3]
+                print (pname.upper(), pval, punit, " Found")
+            if punit!=a[3]: 
+                print ("WARNING: UNIT MISMATCH")
+                print ("Specified Unit: "+punit)
+                print ("Boundary Value Unit: "+a[3])
             check=bool(1)
-        else: 
-            #print "No Match"
+        else:
             check=bool(0)
     else:
         check=bool(0) # no param names match
@@ -1404,13 +1461,11 @@ def parse_cbd(bound, chatter=0):
     :param chatter: level of verbosity
     :return: list of (param, minval, maxval, unit)
     """
-    #print "parse_cbd: Bound = %s" % bound
     test=np.asarray(bound.split("(")) # split the string at the "(" into a list; use numpy.asarray to convert to an array
     param=test[0]
     cbd=("NONE", "NONE", "NONE", "")
     if param != "NONE": 
-        bval=test[1].split(")") 
-        #print "\n"
+        bval=test[1].split(")")
         if bval[0].find("-")>=0: # .find returns a -1 if the substring is not found, otherwise the position of the string
             ptype="Range" 
             vals=bval[0].split("-")
@@ -1421,18 +1476,18 @@ def parse_cbd(bound, chatter=0):
             minval=bval[0]
             maxval=bval[0]
         if chatter>0:
-            print "Parameter = "+param
-            print "Parameter Boundary Value = "+bval[0]
-            print "Type = "+ptype
+            print ("Parameter = {0}".format(param))
+            print ("Parameter Boundary Value = {0}".format(bval[0]))
+            print ("Type = {0}".format(ptype))
         if ptype =='Range':
             if chatter>0:
-                print "Found Parameter Range"
+                print ("Found Parameter Range")
                 print("Minimum = %f, maximum = %f") % (float(minval), float(maxval))
         unit=""
         if len(bval[1]) > 0:
             unit=bval[1]
         if chatter>0:
-            print "Unit = "+unit
+            print ("Unit = {0}".format(unit))
         if minval.isdigit(): 
             minval=float(minval)
         if maxval.isdigit(): 
@@ -1461,18 +1516,17 @@ def ck_file_existence(cif,caldb="/FTP/caldb", quiet=True):
     ufiles = list(set(files)) # get all unique file names
     missing=[]
     for f in ufiles:
-        #print "File = %s" % f
         file_path=caldb+'/'+f
         if os.path.exists(file_path):
             if not quiet:
-                print "%s exists in %s" % (f,caldb)
+                print ("{0} exists in {1}".format(f,caldb))
             hdu=pyfits.open(file_path, checksum=True)
             hdu.verify('exception')
         else:
-            print "\nFILE %s in caldb.indx file DOES NOT EXIST in %s" % (f,caldb)
+            print ("\nFILE {0} in caldb.indx file DOES NOT EXIST in {1}".format(f,caldb))
             status = -99
             missing.append(f)
-    print "Checking Complete"
+    print ("Checking Complete")
     return status, missing
 
 
@@ -1507,11 +1561,11 @@ def ck_calfile_incif(calfile, telescope, instrument,
     ciffiles = ["{0}/{1}".format(x[0], x[1]) for x in zip(cal_dir, cfiles)]
     if calfile in ciffiles:
         if verbose:
-            print "Found {0} in caldb.indx".format(calfile)
+            print ("Found {0} in caldb.indx".format(calfile))
         status = True
     else:
         if verbose:
-            print "{0} not in caldb.indx".format(calfile)
+            print ("{0} not in caldb.indx".format(calfile))
         status = False
     return status
 
@@ -1537,17 +1591,17 @@ def get_calqual(cif,file):
     cf = [x.strip() for x in calfiles]
     ind = np.where(np.asarray(cf)==file.strip())[0]
     if len(ind) == 0:
-        print "File {0} not found in CIF; returning".format(file)
+        print ("File {0} not found in CIF; returning".format(file))
         xno=0
         cqual= -99
         return xno,cqual
     else:
-        print "File = {0}".format(file)
+        print ("File = {0}".format(file))
         xno = calxno[ind]
         cqual = calqual[ind]
         cdir = caldir[ind]
         for i in range(len(ind)):
-            print "{0}/{1}[{2}] CAL_QUAL = {3} (Row = {4})".format(cdir[i].strip(),file,calxno[i],cqual[i],ind[i])
+            print ("{0}/{1}[{2}] CAL_QUAL = {3} (Row = {4})".format(cdir[i].strip(),file,calxno[i],cqual[i],ind[i]))
     return xno, cqual
 
 
@@ -1557,7 +1611,7 @@ def sync_caldbweb(mission, instrument, version, DoCopy=False, user='mcorcora', h
     """ Syncs the caldb website
 
     After editing/updating appropriate html files on the development side (caldbwww), this routine moves
-    the files to the public side (caldbwwwprod) and also generates the cadlb and heasarc rss feeds
+    the files to the public side (caldbwwwprod) and also generates the caldb and heasarc rss feeds
 
     The html files that need to be updated are::
 
@@ -1589,26 +1643,26 @@ def sync_caldbweb(mission, instrument, version, DoCopy=False, user='mcorcora', h
     errlist = []
     curuser = os.environ['LOGNAME']
     curhost = os.environ['HOSTNAME']
-    if (curuser <> user) or (host not in curhost):
+    if (curuser != user) or (host not in curhost):
         error = "This function must be run as {0} from {1}; returning".format(user, host)
         print(error)
         print("Current user is:{0}  Current host is: {1}".format(curuser, curhost))
         errlist.append(error)
         return errlist
     # generate the caldb news item
-    print "# Generating CALDB news item (develop version)"
+    print ("# Generating CALDB news item (develop version)")
     cmd = "~{0}/bin/caldbdev_rss2.pl".format(user)
-    print cmd
+    print (cmd)
     if DoCopy:
         status = os.system(cmd)
-        if status <> 0:
+        if status != 0:
             errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
-    print "# Generating CALDB news item (public version)"
+    print ("# Generating CALDB news item (public version)")
     cmd = "~mcorcora/bin/caldbprod_rss2.pl"
-    print cmd
+    print (cmd)
     if DoCopy:
         status = os.system(cmd)
-        if status <> 0:
+        if status != 0:
             errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
     # each element of files_to_sync has 3 components:
     # name of file, start directory, end directory
@@ -1633,11 +1687,11 @@ def sync_caldbweb(mission, instrument, version, DoCopy=False, user='mcorcora', h
                              "/www.prod/htdocs/docs/heasarc/caldb/nustar"))
         files_to_sync.append(("nustar.rss", "/www/htdocs/docs/nustar/news/",
                              "/www.prod/htdocs/docs/nustar/news/"))
-    print "\n # Syncing website:"
+    print ("\n # Syncing website:")
     for f in files_to_sync:
-        print "# copying {0} from {1} to {2}".format(f[0], f[1], f[2])
+        print ("# copying {0} from {1} to {2}".format(f[0], f[1], f[2]))
         cmd = "cp {1}/{0} {2}/{0}".format(f[0], f[1], f[2])
-        print "{0}\n".format(cmd)
+        print ("{0}\n".format(cmd))
         if DoCopy:
             status = os.system(cmd)
             if prompt:
@@ -1645,20 +1699,20 @@ def sync_caldbweb(mission, instrument, version, DoCopy=False, user='mcorcora', h
                 if ans:
                     pass
                 else:
-                    print "Stopping at user request"
+                    print ("Stopping at user request")
                     status = -1
                     return status
-            if status <> 0:
+            if status != 0:
                 errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
     if mission == "nustar":
-        print "# Creating {0} and heasarc newsfeeds (dev version)".format(mission)
+        print ("# Creating {0} and heasarc newsfeeds (dev version)".format(mission))
         cmd = "/www/htdocs/docs/rss/nustar_rss2.pl"
         print("{0}\n".format(cmd))
         if DoCopy:
             status = os.system(cmd)
-            if status <> 0:
+            if status != 0:
                 errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
-        print "# Creating nustar and heasarc newsfeeds (public version)"
+        print ("# Creating nustar and heasarc newsfeeds (public version)")
         cmd = "/www.prod/htdocs/docs/rss/nustar_rss2.pl"
         print("{0}\n".format(cmd))
         if DoCopy:
@@ -1668,20 +1722,20 @@ def sync_caldbweb(mission, instrument, version, DoCopy=False, user='mcorcora', h
                 if ans:
                     pass
                 else:
-                    print "Stopping at user request"
+                    print ("Stopping at user request")
                     status = -1
                     return status
-            if status <> 0:
+            if status != 0:
                 errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
     # create heasarc news feed from astroupdate
-    print "\n# Creating heasarc newsfeed (dev version)".format(mission)
+    print ("\n# Creating heasarc newsfeed (dev version)".format(mission))
     cmd = "/www/htdocs/docs/rss/software_rss2.pl"
     print("{0}\n".format(cmd))
     if DoCopy:
         status = os.system(cmd)
-        if status <> 0:
+        if status != 0:
             errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
-    print "\n# Creating heasarc newsfeed (public version)"
+    print ("\n# Creating heasarc newsfeed (public version)")
     cmd = "/www.prod/htdocs/docs/rss/software_rss2.pl"
     print("{0}\n".format(cmd))
     if DoCopy:
@@ -1691,10 +1745,10 @@ def sync_caldbweb(mission, instrument, version, DoCopy=False, user='mcorcora', h
             if ans:
                 pass
             else:
-                print "Stopping at user request"
+                print ("Stopping at user request")
                 status = -1
                 return status
-        if status <> 0:
+        if status != 0:
             errlist.append('Problem executing {0}; status={1}'.format(cmd, status))
     return errlist
 
@@ -1714,8 +1768,8 @@ def get_calpars (toolname, package='heasoft'):
         try:
             pfiledir = os.getenv(envname)+'/syspfiles'
         except:
-            print "Package = {0} but problem accessing environment variable ${1}".format(package, envname)
-            print "Package = {0} but problem accessing envirionment variable ${1}".format(package, envname)
+            print ("Package = {0} but problem accessing environment variable ${1}".format(package, envname))
+            print ("Package = {0} but problem accessing envirionment variable ${1}".format(package, envname))
             return 0
         parfile = pfiledir+'/'+toolname+'.par'
         with open (parfile,'r') as pf:
@@ -1762,11 +1816,8 @@ def create_caldb_tar(telescop, instrume, version, tarName = "",
     from ftplib import FTP
     import shutil
     # TODO: allow selection of one or more subdirectories to tar; useful for clockcor
-    #cif = get_cif(telescop, instrume)
     tel=telescop.strip()
     instr = instrume.strip()
-    #ver = version.strip()
-    # ver should be of the form 20170503
     ver = version.split('caldb.indx')[1].strip()
     cwd = os.getcwd()
     status = 0
@@ -1777,16 +1828,16 @@ def create_caldb_tar(telescop, instrume, version, tarName = "",
         try:
             os.chdir(tardir)
         except OSError:
-            print "Could not change directory to {0}".format(tardir)
-            print "returning"
+            print ("Could not change directory to {0}".format(tardir))
+            print ("returning")
             status = -1
             return
-        print 'Current directory = {0}'.format(os.getcwd())
+        print ("Current directory = {0}".format(os.getcwd()))
 
     cif = "{0}/data/{1}/{2}/index/caldb.indx{3}".format(caldb,tel,instr,ver)
     try:
         hdu = pyfits.open(cif)
-    except Exception, errmsg:
+    except Exception as errmsg:
         print("Could not open {0}; returning".format(cif))
         status = -1
         return status
@@ -1804,22 +1855,21 @@ def create_caldb_tar(telescop, instrume, version, tarName = "",
          t = tarfile.open(tindname,'r')
          try:
              t.extractall()
-         except Exception, errmsg:
-             print "Problem extracting files from index.tar:{0}".format(errmsg)
+         except Exception as errmsg:
+             print ("Problem extracting files from index.tar:{0}".format(errmsg))
              status = -1
          cifs = glob.glob('index/caldb*')
          arcname = ['index/' + c[c.rfind('/') + 1:] for c in cifs]
          for c, a in zip(cifs, arcname):
              tar.add(c, "data/{0}/{1}/{2}".format(tel, instr, a))
          if os.path.islink("caldb.indx"):
-             print "Removing {0}/caldb.indx".format(tardir)
+             print ("Removing {0}/caldb.indx".format(tardir))
              os.remove("{0}/caldb.indx".format(tardir))
          try:
              os.symlink("index/caldb.indx{0}".format(ver), "caldb.indx")
-         except OSError, emsg:
-             print "Could not create symbolic line to caldb.indx"
-             print "Error message was: {0}".format(emsg)
-             print "returning"
+         except OSError as emsg:
+             print ("Could not create symbolic line to caldb.indx")
+             print ("Error message was: {0}; returning".format(emsg))
              status = -1
              return status
          tar.add("caldb.indx", "data/{0}/{1}/caldb.indx".format(tel, instr))
@@ -1832,14 +1882,14 @@ def create_caldb_tar(telescop, instrume, version, tarName = "",
         for c, a in zip(cifs, arcname):
             tar.add(c, "data/{0}/{1}/{2}".format(tel, instr, a))
         if os.path.isfile("{0}/caldb.indx".format(tardir)):
-            print "Removing {0}/caldb.indx".format(tardir)
+            print ("Removing {0}/caldb.indx".format(tardir))
             os.remove("{0}/caldb.indx".format(tardir))
         try:
             os.symlink("index/caldb.indx{0}".format(ver), "caldb.indx")
-        except OSError, errmsg:
+        except OSError as errmsg:
             lcif = "{0}/caldb.indx".format(tardir)
-            print errmsg
-            print "Does file {0} exist? {1}".format(lcif, os.path.isfile(lcif))
+            print (errmsg)
+            print ("Does file {0} exist? {1}".format(lcif, os.path.isfile(lcif)))
             status = -1
         tar.add("caldb.indx","data/{0}/{1}/caldb.indx".format(tel, instr))
     os.remove("{0}/caldb.indx".format(tardir))
@@ -1868,30 +1918,28 @@ def create_caldb_tar(telescop, instrume, version, tarName = "",
     for goodfile in goodfiles_selected:
         if ("http://" in caldb) or ("ftp://" in caldb): # if remote access, download the file
             # download the goodfile from the heasarc
-            response = urllib2.urlopen("{0}/{1}".format(caldb,goodfile))
+            response = urllib.request.urlopen("{0}/{1}".format(caldb,goodfile))
             data = response.read()
             localgoodfile = goodfile[goodfile.rfind("/")+1:] # strip off the directory path for the local file
             tmp_cfile = "{0}/{1}".format(tardir, localgoodfile)
             out = open(tmp_cfile,'w')
             out.write(data)
             out.close()
-            print "Adding {0} as {1}".format(tmp_cfile, goodfile)
+            print ("Adding {0} as {1}".format(tmp_cfile, goodfile))
             try:
                 tar.add(tmp_cfile, arcname=goodfile)
-            except Exception, errmsg:
-                print "Error adding {0}".format(goodfile)
-                print errmsg
+            except Exception as errmsg:
+                print ("Error adding {0} ({1})".format(goodfile, errmsg))
                 status = -1
             os.remove(tmp_cfile)
         else: # using locally-mounted caldb
             #tmp_cfile = "{0}/{2}".format(caldb, cd, cf)
             cfile_to_add = "{0}/{1}".format(caldb,goodfile)
-            print "Adding {0} as {1}\n".format(cfile_to_add, goodfile)
+            print ("Adding {0} as {1}\n".format(cfile_to_add, goodfile))
             try:
                 tar.add(cfile_to_add, arcname=goodfile)
-            except Exception, errmsg:
-                print "Error adding {0}".format(goodfile)
-                print errmsg
+            except Exception as errmsg:
+                print ("Error adding {0} ({1})".format(goodfile, errmsg))
                 status = -1
 
     tar.close()
@@ -1914,8 +1962,8 @@ def create_update_tarfile(telescope, update, notice_dir_root='/FTP/caldb/staging
     notice_dir_root = notice_dir_root.lower().strip()
     upd = read_update_notice(telescope, update, notice_dir="{0}/{1}/to_ingest".format(notice_dir_root,
                                                                                       telescope))
-    date = upd[telescope].keys()[0]
-    inst = upd[telescope][date].keys()[0]
+    date = list(upd[telescope].keys())[0]
+    inst = list(upd[telescope][date].keys())[0]
     tarname = 'update_{0}_{1}_{2}.tar'.format(telescope,inst, date)
     inflist = ["/FTP/caldb/data/{1}/{2}/{0}".format(x, telescope, inst) for x in upd[telescope][date][inst][1:]]
     outlist = [x.replace('/FTP/caldb/data','data') for x in inflist]
@@ -1924,11 +1972,11 @@ def create_update_tarfile(telescope, update, notice_dir_root='/FTP/caldb/staging
 
 def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
     import numpy as np
-    print "\n TESTING cmp_cbd\n"
+    print ("\n TESTING cmp_cbd\n")
     cbd="PHI(10-20)arcmin"
     a= cmp_cbd(cbd,'phi',20)
-    print a
-    print "\n TESTING get_cif\n"
+    print (a)
+    print ("\n TESTING get_cif\n")
     cifhdu=get_cif('fermi','lat',cifout='/tmp/cif4',caldb=caldb)
     cols=cifhdu[1].columns
     tbdata=cifhdu[1].data
@@ -1937,9 +1985,8 @@ def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
     cbd[len(cbd)-1][0+n*70:70+n*70] # can divide the boundary string into 9 string of length 70 characters
     bnd=['theta=100','phi=200']
     quizcif('fermi','lat','EDISP',cal_cbd=bnd, caldb=caldb)
-    print "\n TESTING get_cbds and cmp_cbd\n"
+    print ("\n TESTING get_cbds and cmp_cbd\n")
     (cbds, tbdata)=get_cbds('fermi','lat', caldb=caldb)
-    #print "Printing boundary values"
     cal_cnam=tbdata.field('CAL_CNAM')
     cal_qual=tbdata.field('CAL_QUAL')
     cal_file=tbdata.field('CAL_FILE')
@@ -1955,12 +2002,12 @@ def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
         for item in range(len(cbds[select_index[row]])):
             cbdtest=parse_cbd(item)
             if cbdtest[0]=='CLASS':
-                print "Current CBD is %s, CNAM is %s (%i, %s)" % (cbds[select_index[row]][item], cal_cnam[select_index[row]], row, item)
+                print ("Current CBD is {0}, CNAM is {1} ({2}, {3})".format(cbds[select_index[row]][item], cal_cnam[select_index[row]], row, item))
             if cmp_cbd(cbds[select_index[row]][item], "CLASS", "P6_v1_diff_front"):
-                print "\nFound parameter %s, row = %i, boundary value in row = %i" % (cbds[row][item], row, item)
-                print "CBD for row %i is %s" % (select_index[row], cbds[select_index[row]])
-                print "CAL_CNAM is %s" % cal_cnam[select_index[row]]
-                print "CAL_FILE is %s" % cal_file[select_index[row]]
+                print ("\nFound parameter %s, row = %i, boundary value in row = %i" % (cbds[row][item], row, item))
+                print ("CBD for row %i is %s" % (select_index[row], cbds[select_index[row]]))
+                print ("CAL_CNAM is %s" % cal_cnam[select_index[row]])
+                print ("CAL_FILE is %s" % cal_file[select_index[row]])
                 # if cmp_cbd
     a="Done"
     return a
@@ -1977,6 +2024,18 @@ def check_cif_diff():
     fermiv11 = Caldb(telescope='fermi', instrument='lat', caldb='/Volumes/SXDC/caldb_test/fermi')
     fermiv11.set_cif('caldb_v11r5p3_20180215.indx')
     diff_dict = fermiv11.cif_diff(fermiv10)
+    return
+
+def cif2xl(cifname):
+    """
+    Convert cif to excel format
+    :param cifname:
+    :return:
+    """
+    cif = Table.read(cifname)
+    outname = f"{cifname.replace('.indx','_indx')}.xls"
+    print(f'Writing {outname}')
+    cif.to_pandas().to_excel(outname)
     return
 
     
@@ -2039,7 +2098,10 @@ if __name__ == "__main__":# create_caldb_tar('nustar','fpm','20161021', tardir='
 
     #check_cif_diff()
 
-    testfile = CaldbFile('/Users/corcoran/program/HEASARC/missions/NICER_HEASARC/calibration/caldbdev/20180404/nixtisoyuz20170601v001.fits')
+    #testfile = CaldbFile('/Users/corcoran/program/HEASARC/missions/NICER_HEASARC/calibration/caldbdev/20180404/nixtisoyuz20170601v001.fits')
+
+    cdb = Caldb('suzaku','xis').set_cif()
+    cdb.cifstats()
 
 
 
