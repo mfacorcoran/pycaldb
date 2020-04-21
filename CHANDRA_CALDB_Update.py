@@ -1,10 +1,11 @@
 import heasarc as h
 import os
+from heasarc.pycaldb3 import pycaldb as pc
 
 """
 Import this package as 
 
- from heasarc.pycaldb.CHANDRA_CALDB_Update import *
+ from heasarc.pycaldb3.CHANDRA_CALDB_Update import *
  
 then run it as caldbmgr as
 
@@ -16,8 +17,7 @@ def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
                          ChandraCaldbHost = "cda.harvard.edu",
                          user="caldbmgr", host="heasarcdev"):
     """
-    This function downloads the chandra caldb from the CXC site to the heasarc caldb then untars it and installs 
-    the HEASARC version in the HEASARC CALDB
+    This function downloads the chandra caldb from the CXC site to the heasarc caldb then untars it and installs the HEASARC version in the HEASARC CALDB
     
     version should be a string like 
         version = "4.7.2"
@@ -32,7 +32,7 @@ def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
     errlist=[]
     curuser = os.environ['LOGNAME']
     curhost = os.environ['HOSTNAME']
-    if (curuser<>user) or (host not in curhost ):
+    if (curuser!=user) or (host not in curhost ):
         error = "This function must be run as {0} from {1}; returning".format(user, host)
         print(error)
         print("Current user is:{0}  Current host is: {1}".format(curuser, curhost))
@@ -51,9 +51,9 @@ def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
     print('Found these caldb files to download from CXC')
     for f in files_to_download:
         print(f)
-    ans = raw_input('Continue (y/N)> ')
-    if ans.strip()[0].lower() <> 'y':
-        print "User cancelled execution; Returning"
+    ans = input('Continue (y/N)> ')
+    if ans.strip()[0].lower() != 'y':
+        print ("User cancelled execution; Returning")
         return
 
     DownLoadDir=CaldbWorkDir+"/chandra-"+version.strip()
@@ -65,12 +65,12 @@ def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
     os.chdir(DownLoadDir)
     for f in files_to_download:
         cmd = 'wget {0}'.format(f)
-        print cmd
+        print (cmd)
         status = os.system(cmd)
-        if status <> 0:
-            ans = raw_input('Problem with wget; Continue (y/N)> ')
-            if ans.strip()[0].lower() <> 'y':
-                print "User cancelled execution; Returning"
+        if status != 0:
+            ans = input('Problem with wget; Continue (y/N)> ')
+            if ans.strip()[0].lower() != 'y':
+                print ("User cancelled execution; Returning")
                 return
     #
     # untar the tar files and delete the tar file after untarring
@@ -78,27 +78,27 @@ def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
     os.chdir(DownLoadDir)
     for t in filename:
         if '.tar' in t:
-            print "Untarring {0}".format(t)
+            print ("Untarring {0}".format(t))
             tarf = tarfile.open(t)
             try:
                 tarf.extractall()
             except:
-                print "ERROR UNTARRING {0}; returning".format(t)
+                print ("ERROR UNTARRING {0}; returning".format(t))
                 status = -99
                 return status
-            print "Deleting tar file {0}".format(t)
+            print ("Deleting tar file {0}".format(t))
             os.remove(t)
     
     #
     # don't forget the manifest and readme files
     #
     manfile = 'MANIFEST_{0}_main.txt'.format(version.strip())
-    print "Moving {1} into {0}/docs/chandra/manifests{1}".format(DownLoadDir,manfile)
+    print ("Moving {1} into {0}/docs/chandra/manifests{1}".format(DownLoadDir,manfile))
     localfile = DownLoadDir+"/docs/chandra/manifests/"+manfile
     shutil.move("{0}/{1}".format(DownLoadDir,manfile), "{0}/docs/chandra/manifests/{1}".format(DownLoadDir,manfile))
 
     readme = "README_caldb{0}.txt".format(version.strip())
-    print "Moving {1} into {0}/docs/chandra/{1}".format(DownLoadDir,readme)
+    print ("Moving {1} into {0}/docs/chandra/{1}".format(DownLoadDir,readme))
     shutil.move("{0}/{1}".format(DownLoadDir,readme), "{0}/docs/chandra/{1}".format(DownLoadDir,readme))
     
     os.chdir(CaldbWorkDir)
@@ -109,12 +109,12 @@ def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
     staging = "/FTP/caldb/staging/cxc/chandra-"+version.strip()
     public = "/FTP/caldb/data/chandra-"+version.strip()
     if os.path.isdir(public):
-        ans = raw_input("\n"+public+' ALREADY EXISTS.  Remove it (Y/n) ?')
+        ans = input("\n"+public+' ALREADY EXISTS.  Remove it (Y/n) ?')
         if not ans.lower().strip()[0] == 'n':
-            print "Removing {0}".format(public)
+            print ("Removing {0}".format(public))
             shutil.rmtree(public)
         else: 
-            print "Directory not deleted; returning"
+            print ("Directory not deleted; returning")
             status = -99
             return status
 
@@ -126,7 +126,7 @@ def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
     dst = "/FTP/caldb/data/chandra"
     if os.path.islink(dst):
         os.remove(dst) 
-    print "Creating symbolic link from {0} to {1}".format(src, dst)
+    print ("Creating symbolic link from {0} to {1}".format(src, dst))
     os.symlink(src, dst)
     
     return status
@@ -138,7 +138,7 @@ def chandra_html_summaries(outroot = '/www/htdocs/docs/heasarc/caldb/data/chandr
     as of Mar 22 2018 caldbmgr has been added to the wwwwgroup so this can be directly run by caldbmgr)
     :param outroot: root directory where output html files will be placed
     """
-    ccal = h.pc.Caldb(telescope='chandra')
+    ccal = pc.Caldb(telescope='chandra')
     murl = 'http://cxc.harvard.edu'
     instruments = ccal.get_instruments()
     for inst in instruments:
@@ -146,7 +146,7 @@ def chandra_html_summaries(outroot = '/www/htdocs/docs/heasarc/caldb/data/chandr
         ver = ccal.get_versions()[-1] # get last item in array, which should be the latest version of the cif
         ccal.set_cif(ver)
         outdir = os.path.join(outroot,inst,'index')
-        print 'Writing to {outd}'.format(outd=outdir)
+        print ('Writing {inst}, {ver} to {outd}'.format(inst=inst, ver=ver, outd=outdir))
         ccal.html_summary(missionurl=murl, outdir=outdir, clobber=clobber)
 
 if __name__ == "__main__":
