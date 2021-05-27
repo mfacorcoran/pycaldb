@@ -353,7 +353,7 @@ class Caldb(object):
         return cifhdu
 
 
-    def mkcif(self, cifout, src_cif=None, outdir=None, New=False, clobber=False):
+    def mkcif(self, cifout, caldbver=None, src_cif=None, outdir=None, New=False, clobber=False):
         """
         creates a copy of cif named cifout in the caldb for a given telescope and instrument; if
         cifdir is not specified, use the index directory for the specified telescope and instrument
@@ -365,7 +365,9 @@ class Caldb(object):
 
         :param telescope: name of the telescope/mission (value of the TELESCOP keyword)
         :param instrument: name of the instrument (value of the INSTRUME keyword)
-        :param src_cif: name of cif to be copied
+        :param cifout: name of cif to be created
+        :param caldbversion: value of the CALDBVER keyword (if None, construct it from the string appended to caldb.indx, which  is usually in YYYYMMDD format, i.e. caldb.indx20200101
+        :param src_cif: name of cif to be copied if not None
         :param outdir: location to write the cif; if not specified, define from the caldbconfig file
         :param New: if True, create a blank cif
         :return:
@@ -378,7 +380,12 @@ class Caldb(object):
         if not self.check_config():
             print ("Returning")
             return
-
+        if caldbver == None:
+            # if None, use the stuff appended to caldb.indx as the caldbver
+            caldbver = cifout.split('caldb.indx')[-1]
+            if len(caldbver)==0:
+                print('CALDBVER not specified and {cifout} has no version appended; returning'.format(cifout=cifout))
+                return
         if New:
             c1 = pyfits.Column(name='TELESCOP', format='10A     ')
             c2 = pyfits.Column(name='INSTRUME', format='10A     ')
