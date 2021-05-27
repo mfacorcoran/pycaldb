@@ -1,9 +1,10 @@
 """
 pycaldb is a set of python functions which can be used to do useful things with a HEASARC-style calibration database
 
-Version 0.1 (20131122)
-"""
 
+"""
+__version__ = '0.5/20210527'
+__author__ = 'M. F. Corcoran'
 #from pycaldb import Caldbindx
 # print "Importing caldb_supported_missions as csm"
 # import caldb_supported_missions

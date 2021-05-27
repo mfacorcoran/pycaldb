@@ -2111,7 +2111,8 @@ def cif2xl(cifname):
     return
 
     
-if __name__ == "__main__":# create_caldb_tar('nustar','fpm','20161021', tardir='/Users/corcoran/Desktop/tmp/caltartest',
+if __name__ == "__main__":
+    # create_caldb_tar('nustar','fpm','20161021', tardir='/Users/corcoran/Desktop/tmp/caltartest',
     #                 tarName='goodfiles_nustar_fpm_94nov9.tar.gz',
     #                 caldb= '/caldb')
     # test
