@@ -283,6 +283,7 @@ class Caldb(object):
         :param version: optional, version of the caldbindx file to use (eg: 'caldb.indx20170727')
         :return: sets the cif attribute to the specified caldb version
         """
+        print("INSDIR: ", self.get_insdir())
         if version:
             cifname = os.path.join(self.get_insdir(),'index',version)
         else:
@@ -917,6 +918,19 @@ def file_exists(self):
         pass
     return os.path.isfile(file)
 
+
+def get_cif(telescope,instrument,caldb=None, cifout = None):
+
+    this_caldb = Caldb(telescope=telescope,instrument=instrument,caldb=caldb)
+
+    this_caldb.set_cif()
+
+    hdulist = this_caldb.get_cifhdu()
+
+    return hdulist
+    
+    
+
 def get_cbds(telescope, instrument, caldb=None):
     """ Get calibration boundaries from a caldb file
 
@@ -933,6 +947,8 @@ def get_cbds(telescope, instrument, caldb=None):
     cbds = tbdata.field('CAL_CBD')
     # nel=len(cbds)
     # return array of boundaries
+    print("CBDS")
+    print(cbds)
     cbds = cbds.split()  # split the cbd values on whitespace
     print ("Splitting cbds")
     return (cbds, tbdata)
@@ -1239,9 +1255,9 @@ def quizcif(telescope='', instrument='', cal_cnam='', detnam='',
     vsdt=Time(vsdt,format='iso',scale='utc')
     cif_vsdt=cifdata.field("cal_vsd")+' '+cifdata.field("cal_vst")
     cif_vsdt= Time(cif_vsdt, format='iso', scale='utc')
-
-    #print vsdt.jd
-    #print cif_vsdt.jd
+    print("Input time and CIF time")
+    print(vsdt.jd)
+    print(cif_vsdt.jd)
 
     dift= cif_vsdt.jd-vsdt.jd
     #dift=vsdt.jd-cif_vsdt.jd
@@ -1253,6 +1269,14 @@ def quizcif(telescope='', instrument='', cal_cnam='', detnam='',
         print ("Time criterion not matched by CALDB")
         return
     cifdata=cifdata[ivsd] # filter on acceptable vsds.  Any cif_vsdt<vsdt is acceptable
+
+    idet = np.where(cifdata.field("detnam") == detnam)
+
+    cifdata = cifdata[idet]
+    print("CIF DATA")
+    print(cifdata)
+
+    
     #
     # cbds - have to extract all the boundary value entries, then find the ones that match
     # the specified boundary array entries
@@ -1269,7 +1293,7 @@ def quizcif(telescope='', instrument='', cal_cnam='', detnam='',
     #  a. find the name of the first input boundary parameter by splitting on = equality, or < or > as necessary
     param=cal_cbd[0].split('=')
     param=param[0]
-    print (param)
+    print("PARAM: ", param)
 
 def get_calkeys(filename, extno):
     """
@@ -1927,8 +1951,10 @@ def test_pycaldb(dummy, caldb='ftp://heasarc.gsfc.nasa.gov/caldb'):
     select_index=select_index[cqualmatch]
     #Now match boundary parameters
     for row in range(len(cbds[select_index])):
+        #print("ROW: ", row)
         for item in range(len(cbds[select_index[row]])):
-            cbdtest=parse_cbd(item)
+            #print("ITEM: ", item)
+            cbdtest=parse_cbd(cbds[select_index][row][item])
             if cbdtest[0]=='CLASS':
                 print ("Current CBD is {0}, CNAM is {1} ({2}, {3})".format(cbds[select_index[row]][item], cal_cnam[select_index[row]], row, item))
             if cmp_cbd(cbds[select_index[row]][item], "CLASS", "P6_v1_diff_front"):
