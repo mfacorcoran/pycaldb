@@ -1276,7 +1276,6 @@ def quizcif(telescope='', instrument='', cal_cnam='', detnam='',
     print("CIF DATA")
     print(cifdata)
 
-    
     #
     # cbds - have to extract all the boundary value entries, then find the ones that match
     # the specified boundary array entries
@@ -1422,7 +1421,7 @@ def parse_cbd(bound, chatter=0):
 def ck_file_existence(cif,caldb="/FTP/caldb", quiet=True):
     """Check that file in caldb.indx exists in CALDB
     
-    for a cif hdulist structure (as returned, for example, by get_cif(), or from cif=pyfits.open(PATH_TO_CIF))
+    for a cif hdulist structure (as returned, for example, by get_cifhdu(), or from cif=pyfits.open(PATH_TO_CIF))
     retrieves the list of files from the cif and their corresponding directories
     then checks the specified caldb for them
 
@@ -1442,6 +1441,17 @@ def ck_file_existence(cif,caldb="/FTP/caldb", quiet=True):
     for f in ufiles:
         file_path=caldb+'/'+f
         if os.path.exists(file_path):
+            if not quiet:
+                print ("{0} exists in {1}".format(f,caldb))
+            hdu=pyfits.open(file_path, checksum=True)
+            hdu.verify('exception')
+        # check for compressed versions of file
+        elif os.path.exists(file_path+'.gz'):
+            if not quiet:
+                print ("{0} exists in {1}".format(f,caldb))
+            hdu=pyfits.open(file_path, checksum=True)
+            hdu.verify('exception')
+        elif os.path.exists(file_path+'.Z'):
             if not quiet:
                 print ("{0} exists in {1}".format(f,caldb))
             hdu=pyfits.open(file_path, checksum=True)
