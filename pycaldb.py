@@ -321,6 +321,8 @@ class Caldb(object):
                 cifdf[s] = [x.strip() for x in cifdf[s]]
             except:
                 pass
+        # add CAL_VALMJD column for selection on VALIDITY START date/time
+        cifdf['CAL_VALMJD'] = Time(list(cifdf['CAL_VSD'].values+' '+cifdf['CAL_VST'].values)).mjd
         # make the CBDs a list of lists rather than a string & get rid of NONE strings
         # cbds = cifdf['CAL_CBD']
         # for i, c in enumerate(cbds):
@@ -1240,7 +1242,7 @@ def quizcif(telescope='', instrument='', cal_cnam='', detnam='',
     #
     # vsd & vst
     #
-    # to come...plan is to convert vsd+vst into jd, along with the date/time specified by the user and compare
+    # TODO convert vsd+vst into jd, along with the date/time specified by the user and compare
     # 
     now = datetime.datetime.now()
     if cal_vsd=="today":
