@@ -1237,7 +1237,7 @@ def quizcif(telescope='', instrument='', cal_cnam='', detnam='',
     # get entries that match cal_qual
     #
     iqual=np.where(cifdata.field("cal_qual")==cal_qual)
-    cifdate=cifdata[iqual]
+    cifdata=cifdata[iqual]
     print (cifdata.field("cal_qual"))
     #
     # vsd & vst
