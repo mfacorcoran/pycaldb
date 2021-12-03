@@ -1207,7 +1207,6 @@ def quizcif(telescope='', instrument='', cal_cnam='', detnam='',
     :return: 
     """
     from heasoftpy.utils import check_query_param
-    from heasoftpy.utils import ask_for_param
     from heasoftpy.ape import read_par_file
     from heasoftpy import USER_PFILES_DIR as upd
     parfile = os.path.join(upd,'quzcif.par')
