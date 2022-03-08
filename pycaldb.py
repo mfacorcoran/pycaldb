@@ -289,12 +289,14 @@ class Caldb(object):
         else:
             cifname = os.path.join(self.get_insdir(),'caldb.indx')
             if '://' not in self.caldb:
-                # if local caldb, return the link target of caldb.indx
-                try:
-                    cn = os.readlink(cifname)
-                except:
-                    cn = 'caldb.indx' # for caldbs where <inst>/caldb.indx is not a link
-                cifname = os.path.join(self.get_insdir(),cn)
+                if os.path.islink(cifname):
+                    # if not a symlink
+                    # if local caldb, return the link target of caldb.indx
+                    try:
+                        cn = os.readlink(cifname)
+                    except:
+                        cn = 'caldb.indx' # for caldbs where <inst>/caldb.indx is not a link
+                    cifname = os.path.join(self.get_insdir(),cn)
         print('cif = {0}'.format(cifname))
         self.version = version
         self.cif = cifname
