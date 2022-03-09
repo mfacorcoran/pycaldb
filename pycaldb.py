@@ -304,7 +304,7 @@ class Caldb(object):
 
     def get_cif(self):
         """
-        get the calibration index file as a Pandas Datafram
+        get the calibration index file as an astropy Table
 
         :return: Pandas dataframe of the cif
         """
