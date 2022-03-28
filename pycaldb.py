@@ -302,10 +302,10 @@ class Caldb(object):
         self.cif = cifname
         return
 
-    def get_cif(self):
+    def get_cif(self, calcvalmjd=True):
         """
         get the calibration index file as an astropy Table
-
+        :param calcvalmjd: if true (the default), calculate cal_valmjd (used to select on validity start time)
         :return: Pandas dataframe of the cif
         """
         # suppress SettingWithCopyWarning
@@ -327,26 +327,11 @@ class Caldb(object):
             except:
                 pass
         # add CAL_VALMJD column for selection on VALIDITY START date/time
-        cifdf['CAL_VALMJD'] = Time(list(cifdf['CAL_VSD'].values+' '+cifdf['CAL_VST'].values)).mjd
-        # make the CBDs a list of lists rather than a string & get rid of NONE strings
-        # cbds = cifdf['CAL_CBD']
-        # for i, c in enumerate(cbds):
-        #     cc = str(c)
-        #     try:
-        #         cc = cc.replace('NONE', '').strip()
-        #     except Exception as e:
-        #         print(e)
-        #         print(c)
-        #     try:
-        #         cc = cc.split(')')
-        #     except:
-        #         pass
-        #     cc = [x.strip() + ')' for x in cc if len(x.strip()) > 0]
-        #     # seem to need to set cbds[i]=cc in order to update dataframe correctly- weird
-        #     cbds[i] = cc
-        #     #print(f"cc = {cc}")
-        #     cifdf.iloc[i]['CAL_CBD'] = cc
-        #     #print(f"cifdf {cifdf.iloc[i]['CAL_CBD']}")
+        if calcvalmjd:
+            try:
+                cifdf['CAL_VALMJD'] = Time(list(cifdf['CAL_VSD'].values+' '+cifdf['CAL_VST'].values)).mjd
+            except:
+                print ('Could not calculate CAL_VALMJD')
         return cifdf
 
     def get_cifhdu(self, verbose=False):
@@ -380,9 +365,9 @@ class Caldb(object):
         :param New: if True, create a blank cif
         :return:
         """
-
+        from astropy.io import fits as pyfits
         # if cifdir not defined, create cif director from caldbconig file
-
+        
         if not outdir:
             outdir= os.path.join(self.get_insdir(),'index')
         if not self.check_config():
@@ -765,7 +750,7 @@ class Caldb(object):
             print ("Error: Could not get subdirectory for instrument; returning")
             return
         instrument = os.path.split(ins_subdir)[1]
-        cifdf = self.get_cif()
+        cifdf = self.get_cif(calcvalmjd=False)
         if not 'FILTER' in cifdf.columns:
             ans = input('\nCIF missing FILTER values; set FILTER to "INDEF" ([y]/n) > ')
             if ans.strip().lower() != 'n':
