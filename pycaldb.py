@@ -5,6 +5,7 @@
 __author__ = 'M. F. Corcoran'
 __version__ = '0.5'
 
+
 # TODO 1. check that each file in the CALDB directory is in the caldb.indx file
 #   for local caldb, need to traverse the directory tree
 
@@ -14,6 +15,7 @@ import numpy as np
 from astropy.time import Time
 from astropy.io import fits as pyfits
 from astropy.table import Table
+import astropy.units as u
 import sys
 try:
     import urllib.request, urllib.error, urllib.parse
@@ -24,6 +26,9 @@ import jinja2
 #from heasarc import utils as hu
 import time
 import ftplib
+
+# some useful units used in CBD values
+KEV = u.def_unit('KEV', 1.0*u.keV)
 
 class Caldb(object):
     """
@@ -302,37 +307,47 @@ class Caldb(object):
         self.cif = cifname
         return
 
-    def get_cif(self, calcvalmjd=True):
+    def get_cif(self, calcvalmjd=True, return_table=False, calqual=0):
         """
         get the calibration index file as an astropy Table
         :param calcvalmjd: if true (the default), calculate cal_valmjd (used to select on validity start time)
-        :return: Pandas dataframe of the cif
+        :param return_table: if True, returns cif as an astropy Table
+        :param calqual: retrieve only files with cal_qual <= calqual
+        :return: Pandas dataframe of the cif or cif as astropy Table (if return_table=True)
         """
         # suppress SettingWithCopyWarning
         # import pandas as pd
         # pd.options.mode.chained_assignment = None
-        cifhdu = self.get_cifhdu()
-        try:
-            cifdf = Table(cifhdu[1].data).to_pandas()
-        except TypeError as errmsg:
-            print ("Error converting CIF {0} to Table; exiting ({1})".format(self.cif, errmsg))
-            return
-        if 'INSTRUME' not in cifdf.columns:
-            cifdf['INSTRUME'] = 'INDEF'
-        # strip whitespace from string columns
-        stripcols = cifdf.columns
-        for s in stripcols:
+        if return_table:
+            ciftab = Table.read(self.cif, hdu=1)
+            if calqual>=0:
+                ciftab = ciftab[ciftab['CAL_QUAL'] == calqual]
+            return ciftab
+        else:
+            cifhdu = self.get_cifhdu()
             try:
-                cifdf[s] = [x.strip() for x in cifdf[s]]
-            except:
-                pass
-        # add CAL_VALMJD column for selection on VALIDITY START date/time
-        if calcvalmjd:
-            try:
-                cifdf['CAL_VALMJD'] = Time(list(cifdf['CAL_VSD'].values+' '+cifdf['CAL_VST'].values)).mjd
-            except:
-                print ('Could not calculate CAL_VALMJD')
-        return cifdf
+                cifdf = Table(cifhdu[1].data).to_pandas()
+            except TypeError as errmsg:
+                print ("Error converting CIF {0} to Table; exiting ({1})".format(self.cif, errmsg))
+                return
+            if 'INSTRUME' not in cifdf.columns:
+                cifdf['INSTRUME'] = 'INDEF'
+            # strip whitespace from string columns
+            stripcols = cifdf.columns
+            for s in stripcols:
+                try:
+                    cifdf[s] = [x.strip() for x in cifdf[s]]
+                except:
+                    pass
+            # add CAL_VALMJD column for selection on VALIDITY START date/time
+            if calcvalmjd:
+                try:
+                    cifdf['CAL_VALMJD'] = Time(list(cifdf['CAL_VSD'].values+' '+cifdf['CAL_VST'].values)).mjd
+                except:
+                    print ('Could not calculate CAL_VALMJD')
+            if goodonly:
+                cifdf = cifdf[cifdf['CAL_QUAL']==0]
+            return cifdf
 
     def get_cifhdu(self, verbose=False):
         if not self.cif:
@@ -502,7 +517,7 @@ class Caldb(object):
             return
         return cnames
 
-    def find_calfiles(self,cname, cqual=0, return_files=True):
+    def find_calfiles(self,cname, cqual=0, return_files=False):
         """
         returns a list of files from a caldb.indx object having the specified
         CAL_CNAM and CAL_QUAL
@@ -512,7 +527,6 @@ class Caldb(object):
         :param return_files: if False, returns the entire dataframe matching the specified cname, cqual;
         if True, returns only the unique filenames with fully-qualified subdirectory path
         :return:
-
         """
         cname = cname.upper().strip()
         cdf = self.get_cif()
@@ -584,38 +598,18 @@ class Caldb(object):
                 print ("    Extension #{0} CNAME = {1} QUAL = {2}  CBDs = {3}".format(i+1, cname, cqual, ','.join(cbd), ))
         return status
 
-    def cif_diff(self, caldb2cmp, print_report=True):
+    def cif_diff(self, caldb2cmp, keys=['CAL_DIR', 'CAL_FILE', 'CAL_QUAL']):
         """
-        compares the current Caldbindx cif (as given by the caldb.cif attribute) to the specified version and returns a dictionary showing:
-        - MISSING_FROM_COMPARISON:names of files & extension numbers in current
-              caldb.cif which are not in the specified version
-        - MISSING_FROM_CURRENT: names of files & extension numbers in specified version of the cif which
-            are not in the current caldb.cif
-        TODO
-        - CHANGED_QUALITY: names of files & extension numbers in the current Caldbindx object which have changed their quality flags compared
-        to the comparison Caldbindx object TODO
+        compares the current Caldb (as given by the caldb.cif attribute) to the caldb2cmp version and returns a table of rows in the Caldb cif that are not in caldb2cmp cif, using astropy.table setdiff
+        see https://docs.astropy.org/en/stable/table/operations.html#id15
 
-        :param caldb2cmp: Caldbindx object to be compared to the current Caldbindx instance
-        :param print_report: if True, prints a nicely formatted report of the differences to the screen
-        :return:
+        :param caldb2cmp: Caldb object to compare
+        :param keys: column names to use in the comparison
+
+        :returns: sdiff, set difference containing rows in Caldb cif which are not in caldb2cmp cif
 
         """
-        #
-        # TODO - add CHANGED_QUALITY
-        #  how to do this:
-        #     files2cmp = list(set(cif2cmp['CAL_FILE'] # get all unique file names
-        #     for each file in the CIF_to_CMP, find all the files in the CIF
-        #     for f in files2cmp:
-        #            testcif2cmp = cif2cmp[['CAL_FILE','CAL_XNO', 'CAL_QUAL'][cif2cmp['CAL_FILE']==f]
-        #            testcif = cif2cmp[['CAL_FILE','CAL_XNO', 'CAL_QUAL'][cif2cmp['CAL_FILE']==f]
-        #     then see if testcif2cmp is the same as testcif.
-        #            if not testcif2cmp.equals(testcif)
-        #
-        # If it is, move on, if not find the differences
-        diff_dict = dict()
-        cifdf = self.get_cif()
-        diff_dict['CIF'] = self.cif
-
+        from astropy.table import setdiff
 
         if not self.cif:
             print ("CIF not set for main caldb object; use set_cif() method to set it; returning")
@@ -624,80 +618,15 @@ class Caldb(object):
             print ("CIF not set for comparison caldb object; use set_cif() method to set it; returning")
             return
 
-        cifdf2cmp = caldb2cmp.get_cif()
-        diff_dict['ComparisonCIF'] = caldb2cmp.cif
 
-        # get unique filenames from cif
-        files = set(cifdf.CAL_DIR.str.strip() + '/' + cifdf.CAL_FILE.str.strip())
+        cif = self.get_cif()
+        ciftab = Table.from_pandas(cif)
 
-        # get unique filenames from comparison cif
-        cifdf2cmpfiles = set(cifdf2cmp.CAL_DIR.str.strip() + '/' + cifdf2cmp.CAL_FILE.str.strip())
+        cif2cmp = caldb2cmp.get_cif()
+        cif2cmptab = Table.from_pandas(cif2cmp)
 
-        # find files in cif which are not in comparison cif; then find those files in comparison not in cif
-        missing_from_comparison = [x for x in files if x not in cifdf2cmpfiles]
-        missing_from_current = [x for x in cifdf2cmpfiles if x not in files]
-
-        # find changes for files that appear in both cif and cif2cmp
-        diff_dict['Changes'] = dict()
-        if missing_from_comparison:
-          diff_dict['MISSING_FROM_Comparison_CIF'] = missing_from_comparison
-        else:
-            diff_dict['MISSING_FROM_Comparison_CIF'] = ['All files in {0} found in {1}'.format(self.cif, caldb2cmp.cif)]
-        if missing_from_current:
-            diff_dict['MISSING_FROM_CIF'] = missing_from_current
-        else:
-            diff_dict['MISSING_FROM_CIF'] = ['No files in {1} missing from {0}'.format(self.cif, caldb2cmp.cif)]
-
-        # check changes in number of extensions, cal_qual
-        # for each file in the CIF_to_CMP, find all the entries for that file in the CIF
-
-        # first get list of files which are in both cifs by doing an inner merge
-
-        filescmp = list(set(cifdf2cmp['CAL_FILE']))  # get a list of all unique file names from comparison CIF
-
-        # for files that are in both the CIF and the comparison CIF, see if any values have changed
-        for f in filescmp:
-            # get rows from cif data frame where file = filename being checked
-            testcif = cifdf[['CAL_FILE','CAL_XNO', 'CAL_QUAL']][cifdf['CAL_FILE']==f]
-            # get rows from comparison cif data frame where file = filename being checked
-            testcif2cmp = cifdf2cmp[['CAL_FILE','CAL_XNO', 'CAL_QUAL']][cifdf2cmp['CAL_FILE']==f]
-            testcif.reset_index(inplace=True)
-            testcif2cmp.reset_index(inplace=True)
-            # then see if each entry in testcif2cmp is the same as the corresponding entry in testcif
-            try:
-                cols2cmp = testcif2cmp.columns
-            except:
-                print (f, len(testcif), len(testcif2cmp), testcif2cmp.columns)
-            for i in range(len(testcif2cmp)):
-                try:
-                    ind = np.where(testcif.iloc[i]!=testcif2cmp.iloc[i])
-                except:
-                    print ("For file {2}: Number of rows in testcif = {0}; number of rows in testcif2cmp ={1}".format(len(testcif), len(testcif2cmp), f))
-                try:
-                    val_diff = ind[0][0]
-                except:
-                    val_diff = None
-                if val_diff:
-                    cols=cols2cmp.values[val_diff]
-                    changedname = "{0}_{1}".format(testcif2cmp['CAL_FILE'].iloc[i], testcif2cmp['CAL_XNO'].iloc[i])
-                    if type(cols)==str:
-                        changedstring = "{0} Was {1} Now {2} ".format(cols, testcif2cmp[cols].iloc[i], testcif[cols].iloc[i])
-                    else:
-                        changedstring = ["{0} Was {1} Now {2} ".format(c, testcif2cmp[c].iloc[i], testcif[c].iloc[i]) for c in cols]
-                    diff_dict['Changes'][changedname] = changedstring
-        if print_report:
-            print ("CIF = {0}".format(diff_dict['CIF']))
-            print ("Comparison CIF ={0}".format(diff_dict['ComparisonCIF']))
-            print ("Files in CIF missing from comparison CIF:")
-            for m in diff_dict['MISSING_FROM_Comparison_CIF']:
-                print ("   {0}".format(m))
-            print ("Files in Comparison CIF not in CIF:")
-            for m in diff_dict['MISSING_FROM_CIF']:
-                print ("   {0}".format(m))
-            print ("Changes from Comparison CIF to CIF:")
-            for c in list(diff_dict['Changes'].keys()):
-                print ("   {0}".format(diff_dict['Changes'][c]))
-        return diff_dict
+        sdiff = setdiff(ciftab, cif2cmptab, keys=keys)
+        return sdiff
 
     def html_summary(self, missionurl='', outdir=".",
                      templatedir="/Home/home1/corcoran/Python/heasarc/pycaldb/templates",
@@ -1079,6 +1008,36 @@ def read_update_notice(telescope,updatedate,notice_dir = '/Users/corcoran/Deskto
             print (instrument, filelist)
     return update_dict
 
+def mk_cifname(telescope, instrument, version=None, caldb=None, return_target = False, verbose=True):
+    """
+    gets the name and full path/url of a specified caldb index file
+
+    :param telescope: caldb name of the instrument/telescope
+    :param instrument: caldb name of the instrument on telescope 
+    :param version: version of the cif usually in YYYYMMDD format (optional; if not specified returns path/url to current caldb.indx file)
+    :param caldb: value of the CALDB environment variable (if not specified) or path to top level CALDB
+    :param return_target: if True and the cifname is a link, returns the path to the target of the link
+    :param verbose: if true print out diagnostic messages
+
+    :return: name of the caldb index along with the full path/url
+    """
+
+    if not caldb:
+        caldb  = os.environ['CALDB']
+        if verbose:
+            print(f' Caldb set to {caldb}')
+    if not version:
+        cifname = os.path.join(caldb, 'data', telescope.strip(), instrument.strip(),'caldb.indx')
+    else:
+        cifname = os.path.join(caldb, 'data', telescope.strip(), instrument.strip(), index, f'caldb.indx{version}')
+    if return_target:
+        if os.path.islink(cifname):
+            targ = os.readlink(cifname)
+            cifname = os.path.join(os.path.split(cifname)[0], targ)
+    return cifname
+
+
+
 def read_cif(telescope=None,instrument=None, version=None, cifname = None, caldb=None):
     """ convert caldb.indx file to FITS HDU
     
@@ -1109,7 +1068,7 @@ def read_cif(telescope=None,instrument=None, version=None, cifname = None, caldb
         return -1
     return hdulist
 
-def cif_to_df(telescope, instrument, version=None, cifname = None):
+def cif_to_df(telescope, instrument, version=None, cifname = None, caldb=None):
     """ convert caldb.indx file to a dataframe
     
     Creates a pandas dataframe from a calibration index file (cif) for a given mission/instrument
@@ -1119,10 +1078,13 @@ def cif_to_df(telescope, instrument, version=None, cifname = None):
     :param cif: (optional) specific cif to retrieve
     :return: pandas dataframe containing the data from the 1st extension in the CIF
     """
+    if not caldb:
+        caldb = os.environ['CALDB']
+        print(f'Caldb = {caldb}')
     if not cifname:
         cifname = mk_cifname(telescope, instrument, version)
     print ("Retrieving CIFNAME = {0}".format(cifname))
-    cif = get_cif(cifname=cifname)
+    cif = get_cif(cifname=cifname, caldb=caldb)
     try:
         cifdf = Table(cif[1].data).to_pandas()
     except TypeError as errmsg:
@@ -2060,3 +2022,59 @@ if __name__ == "__main__":
     hcal.set_cif()
     hcifdf = hcal.get_cif()
 
+
+def fix_caldbver(cif, cifout, caldbver='', verbose=False):
+    """
+    fixes the caldbversion for list of existing caldb.indx files
+    :param cif: name of cif (with path) (string)
+    :param cifout: name of cif with modified caldbver (string)
+    :param caldbver: aldbvers value (string;  if '' will be constructed from name of the cif,
+         assuming cif name is of the form caldb.indx<caldbver>)
+    :return: status (=0 if ok)
+    """
+    import os
+    from astropy.io import fits
+    import glob
+    import datetime
+
+    status = 0
+
+    #cifs = glob.glob('../tmp/index/caldb.indx*')
+
+    c = os.path.split(cif)[-1]
+
+    if len(caldbver) == 0:
+        caldbver=c.replace('caldb.indx','')
+
+    # get mod and access times of original file
+    mtime = os.path.getmtime(cif)
+    atime = os.path.getatime(cif)
+
+    hdu = fits.open(cif)
+
+    hdu[1].header['CALDBVER'] = caldbver
+
+    try:
+        hdu.writeto(cifout, overwrite=True, output_verify='fix')
+    except Exception as e:
+        print(f"Problem writing {cifout} ({e})")
+        status = 1
+
+    # updated checksums with ftchecksum
+    cmd = f'ftchecksum {cifout} update=yes'
+    print(cmd)
+    try:
+        os.system(cmd)
+    except Exception as e:
+        print(f'Problem updating checksums with ftchecksum for {cifout} ({e})')
+        status = 2
+
+    # finally re-set modification date for cifout
+    print('Updating Modification time')
+    try:
+        os.utime(cifout, times=(atime, mtime))
+    except Exception as e:
+        print(f'Problems restoring modification time for {cifout} ({e})')
+        status = 3
+
+    return status
