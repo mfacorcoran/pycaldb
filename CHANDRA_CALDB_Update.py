@@ -1,6 +1,7 @@
 import heasarc as h
 import os
-from heasarc.pycaldb3 import pycaldb as pc
+from heasarc.pycaldb import pycaldb as pc
+from pathlib import Path 
 
 """
 Import this package as 
@@ -10,6 +11,8 @@ Import this package as
 then run it as caldbmgr as
 
 In [3]: chandra_caldb_update('4.7.8')
+
+Version Apri 5 2023: fix for renamed manifest and readme files (which were renamed by cxc)
 """
 
 def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
@@ -90,16 +93,38 @@ def chandra_caldb_update(version, CaldbWorkDir = "/FTP/caldb/staging/cxc",
             os.remove(t)
     
     #
-    # don't forget the manifest and readme files
+    # don't forget the manifest files
     #
-    manfile = 'MANIFEST_{0}_main.txt'.format(version.strip())
-    print ("Moving {1} into {0}/docs/chandra/manifests{1}".format(DownLoadDir,manfile))
-    localfile = DownLoadDir+"/docs/chandra/manifests/"+manfile
-    shutil.move("{0}/{1}".format(DownLoadDir,manfile), "{0}/docs/chandra/manifests/{1}".format(DownLoadDir,manfile))
+    # manfile = 'MANIFEST_{0}_main.txt'.format(version.strip())
+    for p in Path( DownLoadDir ).rglob( f'MANIFEST_{version}_main.txt' ):
+        manfile = os.path.split(p.as_posix())[-1]
+    print ("Moving {1} into {0}/docs/chandra/manifests/{1}".format(DownLoadDir,manfile))
+    localfile = DownLoadDir+"/docs/chandra/manifests/"+os.path.split(manfile)[-1]
+    #shutil.move("{0}/{1}".format(DownLoadDir,manfile), "{0}/docs/chandra/manifests/{1}".format(DownLoadDir,manfile))
+    try:
+        shutil.move("{0}/{1}".format(DownLoadDir,manfile), localfile)
+    except Exception as e:
+        print(f'Error moving MANIFEST file ({e})')
+        ans = input('Problem with wget; Continue (y/N)> ')
+        if ans.strip().upper() != 'Y':
+            print('Returning') 
+            return
 
-    readme = "README_caldb{0}.txt".format(version.strip())
-    print ("Moving {1} into {0}/docs/chandra/{1}".format(DownLoadDir,readme))
-    shutil.move("{0}/{1}".format(DownLoadDir,readme), "{0}/docs/chandra/{1}".format(DownLoadDir,readme))
+    # and the readme 
+    # note that as of 2023, the readme is stored as README_<version>_main.txt
+    # where version is the caldb version number (eg: 4.10.4)
+    # instead of README_caldb<version>.txt (eg: README_caldb4.9.6.txt)
+    # 
+    #readme = "README_caldb{0}.txt".format(version.strip())
+    #
+    readme = "README_{0}_main.txt".format(version.strip())
+    try:
+        shutil.move("{0}/{1}".format(DownLoadDir,readme), "{0}/docs/chandra/{1}".format(DownLoadDir,readme))
+        print ("Moving {1} into {0}/docs/chandra/{1}".format(DownLoadDir,readme))
+    except:
+        readme = "README_{0}.txt".format(version.strip())
+        shutil.move("{0}/{1}".format(DownLoadDir,readme), "{0}/docs/chandra/{1}".format(DownLoadDir,readme))
+        print ("Moving {1} into {0}/docs/chandra/{1}".format(DownLoadDir,readme))
     
     os.chdir(CaldbWorkDir)
     
