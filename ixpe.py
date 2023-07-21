@@ -10,9 +10,14 @@ def ixpe_caldbupdate(tarName, verbose=True,
 
        if those tests pass then untars the update tar file into the ixpe caldb and creates
        the goodfiles tar file and also an update tar file (smaller) for the gpd and xrt
-    :param tarName: name of tarfile containing the files in the IXPE caldb update (eg ixpe_caldb_update_20230526_01.tgz)
 
-    Note that for ixpe, the file in the tar file are relative to the ixpe/ directory
+    :param tarName: name of tarfile containing the files in the IXPE caldb update (eg ixpe_caldb_update_20230526_01.tgz)
+    :param verbose: if True print out helpful diagnostics
+    :param scratchdir: directory used for untarring the update tar file for detailed checking
+    :param caldb: location of the CALDB against which the tar file is checked and untarred if all check pass
+    :param mission: name of the mission (for later generalization to non-ixpe missions)
+
+    Note that for ixpe, the convention used is that the file in the tar file are relative to the ixpe/ directory (not that data/ixpe directory as is the convention)
     i.e. ixpe/xrt/bcf/reef/ixpe_m1_20210103_reef_03.fits
     """
     import tarfile

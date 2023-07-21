@@ -4,7 +4,7 @@ See /FTP/caldb/local/software/pycaldb
 
 def update_clockcor(version, file,
                     url='http://www.srl.caltech.edu/NuSTAR_Public/NuSTAROperationSite/Clockfile_v2/',
-                    caldb='/web_chroot/FTP/caldb/staging',
+                    caldb='/FTP/caldb/staging',
                     wwwdir = '/www/htdocs/docs/heasarc/caldb/data/nustar/fpm/index',
                     wwwproddir = '/www.prod/htdocs/docs/heasarc/caldb/data/nustar/fpm/index',
                     templatedir='/Home/home1/corcoran/Python/heasarc/pycaldb/templates'):
@@ -77,7 +77,7 @@ def update_clockcor(version, file,
         return
     ###
     # 2b) then run udcif to add the new clock correction file to the new caldb.indx file
-    # (remember to set the $CALDB variable as /web_chroot/FTP/caldb if on heasarcdev)
+    # (remember to set the $CALDB variable as /web_chroot/FTP/caldb if on heasarcdev, but use /FTP on heasarcdev-ol8)
     # (this is a bit kludgy - should have a python version of udcif)
     ###
     print('Updating the cif using udcif')
@@ -141,7 +141,7 @@ def update_clockcor(version, file,
     stat=subprocess.call(['tar','cvf',
             'tmp/goodfiles_nustar_fpm_clockcor.tar',
             '--exclude=".*"',
-            'data/nustar/fpm/bcf/clock',
+            'data/nustar/fpm/bcf/clock/{file}'.format(file=file),
             'data/nustar/fpm/index', 
             'data/nustar/fpm/caldb.indx'])
     if stat != 0:
